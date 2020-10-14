@@ -35,7 +35,7 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
 # Options
 
     $ pngcam --usage
-    pngcam [options] PNGFILE > GCODEFILE
+    Usage: pngcam [options] PNGFILE > GCODEFILE
 
     Tool options:
 
@@ -74,12 +74,12 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
     Heightmap options:
 
         --width MM
-            Set the width of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
+            Set the width of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio. If neither are specified, width=100mm is assumed.
             Default: 100
 
         --height MM
-            Set the height of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
-            Default: 100
+            Set the height of the image in mm. If width is not specified, width will be calculated automatically to maintain aspect ratio. If neither are specified, width=100mm is assumed.
+            Default: N/A
 
         --depth MM
             Set the total depth of the part in mm.
