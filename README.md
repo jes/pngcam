@@ -9,7 +9,7 @@ along features on exsiting parts, some special colours are supported:
 
 Colour | Meaning
 -------|--------
-#ff00ff (magneta) | It's OK to cut this material but not necessary
+#ff00ff (magenta) | It's OK to cut this material but not necessary
 #ff0000 (red) | Do not cut into this material
 
 Apart from these special colours, the brightness of a pixel (defined as r+g+b) corresponds to the height, such that white is the highest and black
