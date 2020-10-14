@@ -4,13 +4,24 @@ Pngcam takes in a heightmap and gives out Gcode to run a CNC machine.
 
 ## Usage
 
-Let's first rough out the shape with a 6mm end mill, and then move to a 2mm ball-nose end mill to finish up the part.
+You'll need to represent your part in a heightmap in a PNG file. To facilitate cutting parts out of surrounding stock, and leaving
+along features on exsiting parts, some special colours are supported:
+
+Colour | Meaning
+-------|--------
+#ff00ff (magneta) | It's OK to cut this material but not necessary
+#ff0000 (red) | Do not cut into this material
+
+Apart from these special colours, the brightness of a pixel (defined as r+g+b) corresponds to the height, such that white is the highest and black
+is the lowest.
+
+As an example, let's look at first roughing out a shape with a 6mm end mill, and then move to a 2mm ball-nose end mill to finish up the part.
 With both tools we'll get 2 passes over the part: one horizontal, and one vertical.
 
 We'll start with the toolpath for the 6mm end mill. We'll have a maximum step-down of 1mm and step-over of 5mm, at 10000 rpm, and
 we'll leave 0.25mm clearance from the final part for the finish pass.
 
-We want the width of the heightmap to correspond to 100mm in the part, and we want the full brightness range to cover 10mm depth.
+Let's say we want the width of the heightmap to correspond to 100mm in the part, and we want the full brightness range to cover 10mm depth.
 
     $ pngcam --width 100 --depth 10 --tool-shape flat --tool-diameter 6 --step-down 1 --step-over 5 --speed 10000 --clearance 0.5 heightmap.png > pass1.gcode
 
@@ -19,7 +30,7 @@ And then essentially the same again, but this time with the 2mm ball-nose end mi
     $ pngcam --width 100 --depth 10 --tool-shape ball --tool-diameter 2 --step-down 1 --step-over 0.2 --speed 20000 heightmap.png > pass1.gcode
 
 The (0,0,0) point will be at the top left of the input image, with the part existing in the positive X direction and negative Y direction, and
-with Z=0 at the top surface of the stock.
+with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
 
 # Options
 
@@ -76,4 +87,4 @@ with Z=0 at the top surface of the stock.
 
 # Contact
 
-Pngcam is by James Stanley. You can email me at james@incoherency.co.uk or read my blog at https://incoherency.co.uk/
+Pngcam is a program by James Stanley. You can email me at james@incoherency.co.uk or read my blog at https://incoherency.co.uk/
