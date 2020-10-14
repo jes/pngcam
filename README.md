@@ -23,52 +23,56 @@ with Z=0 at the top surface of the stock.
 
 # Options
 
-$ pngcam --usage
-pngcam [options] PNGFILE > GCODEFILE
+    $ pngcam --usage
+    pngcam [options] PNGFILE > GCODEFILE
 
-Tool options:
-    --tool-shape flat|ball
-        Set the shape of the end mill.
-        Default: ball
+    Tool options:
 
-    --tool-diameter MM
-        Set the diameter of the end mill in mm.
-        Default: 6
+        --tool-shape flat|ball
+            Set the shape of the end mill.
+            Default: ball
 
-Tool control options:
-    --step-down MM
-        Set the maximum step-down in mm. Where the natural toolpath would exceed a cut of this depth, multiple passes are taken instead.
-        Default: 100
+        --tool-diameter MM
+            Set the diameter of the end mill in mm.
+            Default: 6
 
-    --step-over MM
-        Set the distance to move the tool over per pass in mm.
-        Default: 5
+    Tool control options:
 
-    --speed RPM
-        Set the spindle speed in RPM.
-        Default: 10000
+        --step-down MM
+            Set the maximum step-down in mm. Where the natural toolpath would exceed a cut of this depth, multiple passes are taken instead.
+            Default: 100
 
-Path generation options:
-    --clearance MM
-        Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
-        Default: 0
+        --step-over MM
+            Set the distance to move the tool over per pass in mm.
+            Default: 5
 
-    --route horizontal|vertical|both
-        Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.
-        Default: both
+        --speed RPM
+            Set the spindle speed in RPM.
+            Default: 10000
 
-Heightmap options:
-    --width MM
-        Set the width of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
-        Default: 100
+    Path generation options:
 
-    --height MM
-        Set the height of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
-        Default: 100
+        --clearance MM
+            Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
+            Default: 0
 
-    --depth MM
-        Set the total depth of the part in mm.
-        Default: 10
+        --route horizontal|vertical|both
+            Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.
+            Default: both
+
+    Heightmap options:
+
+        --width MM
+            Set the width of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
+            Default: 100
+
+        --height MM
+            Set the height of the image in mm. If height is not specified, height will be calculated automatically to maintain aspect ratio.
+            Default: 100
+
+        --depth MM
+            Set the total depth of the part in mm.
+            Default: 10
 
 # Contact
 
