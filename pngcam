@@ -6,11 +6,14 @@ use warnings;
 use Pngcam;
 use Getopt::Long;
 
+# all options, with defaults:
 my $tool_shape = 'ball';
 my $tool_diameter = 6; # mm
 
 my $step_down = 100; # mm
 my $step_over = 5; # mm
+my $xy_feedrate = 400; # mm/min
+my $z_feedrate = 50; # mm/min
 my $spindle_speed = 10000; # rpm
 
 my $clearance = 0; # mm
@@ -26,6 +29,8 @@ GetOptions(
 
     'step-down=f' => \$step_down,
     'step-over=f' => \$step_over,
+    'xy-feed-rate=f' => \$xy_feedrate,
+    'z-feed-rate=f' => \$z_feedrate,
     'speed=f' => \$spindle_speed,
 
     'clearance=f' => \$clearance,
@@ -39,6 +44,10 @@ GetOptions(
     'usage' => sub { help() },
 ) or help();
 
+help() if @ARGV != 1;
+my $image_file = shift @ARGV;
+
+# default width in mm if none is given
 $width = 100 if !defined $width && !defined $height;
 
 die "unrecognised tool shape (expected 'ball' or 'flat')" if $tool_shape !~ /^(ball|flat)$/;
@@ -50,6 +59,8 @@ my $pngcam = Pngcam->new(
 
     step_down => $step_down,
     step_over => $step_over,
+    xy_feedrate => $xy_feedrate,
+    z_feedrate => $z_feedrate,
     spindle_speed => $spindle_speed,
 
     clearance => $clearance,
@@ -58,6 +69,8 @@ my $pngcam = Pngcam->new(
     width => $width,
     height => $height,
     depth => $depth,
+
+    image_file => $image_file,
 );
 $pngcam->run;
 
@@ -83,6 +96,14 @@ Tool control options:
     --step-over MM
         Set the distance to move the tool over per pass in mm.
         Default: 5
+
+    --xy-feed-rate MM/MIN
+        Set the maximum feed rate in X/Y plane in mm/min.
+        Default: 400
+
+    --z-feed-rate MM/MIN
+        Set the maximum feed rate in Z axis in mm/min.
+        Default: 50
 
     --speed RPM
         Set the spindle speed in RPM.

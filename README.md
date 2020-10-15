@@ -12,7 +12,7 @@ Colour | Meaning
 #ff00ff (magenta) | It's OK to cut this material but not necessary
 #ff0000 (red) | Do not cut into this material
 
-Apart from these special colours, the brightness of a pixel (defined as r+g+b) corresponds to the height, such that white is the highest and black
+Apart from these special colours, the brightness of a pixel (defined as average of r,g,b) corresponds to the height, such that white is the highest and black
 is the lowest.
 
 As an example, let's look at first roughing out a shape with a 6mm end mill, and then move to a 2mm ball-nose end mill to finish up the part.
@@ -57,6 +57,14 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the distance to move the tool over per pass in mm.
             Default: 5
 
+        --xy-feed-rate MM/MIN
+            Set the maximum feed rate in X/Y plane in mm/min.
+            Default: 400
+
+        --z-feed-rate MM/MIN
+            Set the maximum feed rate in Z axis in mm/min.
+            Default: 50
+
         --speed RPM
             Set the spindle speed in RPM.
             Default: 10000
@@ -84,6 +92,7 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
         --depth MM
             Set the total depth of the part in mm.
             Default: 10
+
 
 # Contact
 
