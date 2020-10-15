@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use GD;
+use List::Util qw(min max);
 
 sub new {
     my ($pkg, %opts) = @_;
@@ -70,8 +71,8 @@ sub one_pass {
         # TODO: cut in left and right direction instead of only right to save time
         while ($y < $self->{height}) {
             while ($x < $self->{width}) {
-                $z = $self->cut_depth($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
-                # TODO: support Z feed rate
+                $z = $self->cut_depth($x, $y);
+                # TODO: limit Z feed rate
                 # TODO: support maximum stepdown
                 print "G1 X$x Z$z F$self->{xy_feedrate}\n";
                 $x += $self->{step_over};
@@ -85,14 +86,39 @@ sub one_pass {
     }
 }
 
-# return the desired cut depth with the tool centred at (x,y) pixels
+# return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
 sub cut_depth {
     my ($self, $x, $y) = @_;
 
-    # TODO: consider clearance
-    # TODO: consider tool shape + diameter
+    my $tool_radius = $self->{tool_diameter}/2 + $self->{clearance};
 
-    my $brightness = $self->get_brightness($x, $y);
+    # XXX: currently we just look at the centre and 4 perimeter depths, should instead consider every pixel
+    # in the area of a circle of radius $tool_radius and calculate $zoffset with a function
+
+    # defaults for ball-nose end mill:
+    my $zoffset_centre = $self->{clearance};
+    my $zoffset_perimeter = -$tool_radius;
+    # override for flat end mill:
+    if ($self->{tool_shape} eq 'flat') {
+        $zoffset_perimeter = $self->{clearance};
+    }
+
+    my @depths = (
+        $self->get_depth($x,$y)+$zoffset_centre,
+        $self->get_depth($x+$tool_radius,$y)+$zoffset_perimeter,
+        $self->get_depth($x,$y+$tool_radius)+$zoffset_perimeter,
+        $self->get_depth($x-$tool_radius,$y)+$zoffset_perimeter,
+        $self->get_depth($x,$y-$tool_radius)+$zoffset_perimeter,
+    );
+
+    return max(@depths);
+}
+
+# return the depth at (x,y) mm
+sub get_depth {
+    my ($self, $x, $y) = @_;
+
+    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
 
     # brightness=0 is the bottom of the cut, so max. negative Z
     return ($brightness - 255) * ($self->{depth} / 255);
@@ -101,6 +127,10 @@ sub cut_depth {
 # return pixel brightness at (x,y) pixels, 0..255
 sub get_brightness {
     my ($self, $x, $y) = @_;
+
+    if ($x < 0 || $y < 0 || $x >= $self->{pxwidth} || $y >= $self->{pxheight}) {
+        return 255;
+    }
 
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
