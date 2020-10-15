@@ -69,8 +69,8 @@ sub one_pass {
 
     if ($direction eq 'h') {
         # TODO: cut in left and right direction instead of only right to save time
-        while ($y < $self->{height}) {
-            while ($x < $self->{width}) {
+        while ($y <= $self->{height}) {
+            while ($x <= $self->{width}) {
                 $z = $self->cut_depth($x, $y);
                 # TODO: limit Z feed rate
                 # TODO: support maximum stepdown
