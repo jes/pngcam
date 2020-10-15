@@ -65,6 +65,10 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the maximum feed rate in Z axis in mm/min.
             Default: 50
 
+        --rapid-feed-rate MM/MIN
+            Set the maximum feed rate for rapid travel moves in mm/min.
+            Default: 10000
+
         --speed RPM
             Set the spindle speed in RPM.
             Default: 10000

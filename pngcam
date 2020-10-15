@@ -14,6 +14,7 @@ my $step_down = 100; # mm
 my $step_over = 5; # mm
 my $xy_feedrate = 400; # mm/min
 my $z_feedrate = 50; # mm/min
+my $rapid_feedrate = 10000; # mm/min
 my $spindle_speed = 10000; # rpm
 
 my $clearance = 0; # mm
@@ -31,6 +32,7 @@ GetOptions(
     'step-over=f' => \$step_over,
     'xy-feed-rate=f' => \$xy_feedrate,
     'z-feed-rate=f' => \$z_feedrate,
+    'rapid-feed-rate=f' => \$rapid_feedrate,
     'speed=f' => \$spindle_speed,
 
     'clearance=f' => \$clearance,
@@ -61,6 +63,7 @@ my $pngcam = Pngcam->new(
     step_over => $step_over,
     xy_feedrate => $xy_feedrate,
     z_feedrate => $z_feedrate,
+    rapid_feedrate => $rapid_feedrate,
     spindle_speed => $spindle_speed,
 
     clearance => $clearance,
@@ -104,6 +107,10 @@ Tool control options:
     --z-feed-rate MM/MIN
         Set the maximum feed rate in Z axis in mm/min.
         Default: 50
+
+    --rapid-feed-rate MM/MIN
+        Set the maximum feed rate for rapid travel moves in mm/min.
+        Default: 10000
 
     --speed RPM
         Set the spindle speed in RPM.

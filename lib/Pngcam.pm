@@ -47,6 +47,9 @@ sub run {
         $self->one_pass('v');
     }
 
+    # lift tool up
+    print "G1 Z5 F$self->{z_feedrate}\n";
+
     # stop spindle
     print "M5\n";
 }
@@ -58,9 +61,9 @@ sub one_pass {
     print "(Start $direction pass)\n";
 
     # move to origin
-    print "G91 G1 Z5\n"; # raise up 5mm relative to whatever Z is currently at
-    print "G90 G0 X0 Y0\n"; # move to (0, 0) in x/y plane
-    print "G1 Z0\n"; # move down to z=0
+    print "G91 G1 Z5 F$self->{z_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
+    print "G90 G0 X0 Y0 F$self->{rapid_feedrate}\n"; # move to (0, 0) in x/y plane
+    print "G1 Z0 F$self->{z_feedrate}\n"; # move down to z=0
 
     my ($x, $y, $z) = (0, 0, 0); # mm
 
@@ -79,9 +82,9 @@ sub one_pass {
             }
             $y += $self->{step_over};
             $x = 0;
-            print "G1 Z5\n";
-            print "G0 X0 Y-$y\n"; # note Y is negative
-            print "G1 Z0\n";
+            print "G1 Z5 F$self->{z_feedrate}\n";
+            print "G0 X0 Y-$y F$self->{rapid_feedrate}\n"; # note Y is negative
+            print "G1 Z0 F$self->{z_feedrate}\n";
         }
     }
 }
