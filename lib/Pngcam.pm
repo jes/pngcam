@@ -103,6 +103,7 @@ sub cut_depth {
         $zoffset_perimeter = $self->{clearance};
     }
 
+    # TODO: ignore samples where the colour is magenta
     my @depths = (
         $self->get_depth($x,$y)+$zoffset_centre,
         $self->get_depth($x+$tool_radius,$y)+$zoffset_perimeter,
@@ -129,7 +130,7 @@ sub get_brightness {
     my ($self, $x, $y) = @_;
 
     if ($x < 0 || $y < 0 || $x >= $self->{pxwidth} || $y >= $self->{pxheight}) {
-        return 255;
+        return 0;
     }
 
     my $col = $self->{image}->getPixel($x, $y);
