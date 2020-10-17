@@ -67,7 +67,7 @@ sub one_pass {
     print "(Start $direction pass)\n";
 
     # move to origin
-    print "G91 G1 Z5 F$self->{z_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
+    print "G91 G1 Z$self->{rapid_clearance} F$self->{z_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
     print "G90 G0 X0 Y0 F$self->{rapid_feedrate}\n"; # move to (0, 0) in x/y plane
 
     my ($x, $y, $z) = (0, 0, 0); # mm
@@ -123,13 +123,13 @@ sub one_pass {
                     push @extrapath, {
                         x => $last->{x},
                         y => $last->{y},
-                        z => 5,
+                        z => $self->{rapid_clearance},
                         G => 'G0',
                     };
                     push @extrapath, {
                         x => $p->{x},
                         y => $p->{y},
-                        z => 5,
+                        z => $self->{rapid_clearance},
                         G => 'G0',
                     };
                 }
@@ -152,13 +152,13 @@ sub one_pass {
         push @extrapath, {
             x => $last->{x},
             y => $last->{y},
-            z => 5,
+            z => $self->{rapid_clearance},
             G => 'G0',
         };
         push @extrapath, {
             x => 0,
             y => 0,
-            z => 5,
+            z => $self->{rapid_clearance},
             G => 'G0',
         };
     }
@@ -240,7 +240,7 @@ sub one_pass {
     }
 
     # pick up the tool at the end of the path
-    print "G1 Z5 F$self->{z_feedrate}\n";
+    print "G1 Z$self->{rapid_clearance} F$self->{z_feedrate}\n";
 
     print STDERR "\nDone.\n";
 }

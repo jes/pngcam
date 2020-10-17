@@ -19,6 +19,7 @@ my $spindle_speed = 10000; # rpm
 
 my $roughing_only = 0;
 my $clearance = 0; # mm
+my $rapid_clearance = 5; # mm
 my $route = 'both';
 
 my $width; # mm
@@ -38,6 +39,7 @@ GetOptions(
 
     'roughing-only' => \$roughing_only,
     'clearance=f' => \$clearance,
+    'rapid-clearance=f' => \$rapid_clearance,
     'route=s' => \$route,
 
     'width=f' => \$width,
@@ -70,6 +72,7 @@ my $pngcam = Pngcam->new(
 
     roughing_only => $roughing_only,
     clearance => $clearance,
+    rapid_clearance => $rapid_clearance,
     route => $route,
 
     width => $width,
@@ -129,6 +132,10 @@ Path generation options:
     --clearance MM
         Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
         Default: 0
+
+    --rapid-clearance MM
+        Set the Z clearance to leave above the part during rapid moves.
+        Default: 5
 
     --route horizontal|vertical|both
         Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.

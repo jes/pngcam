@@ -77,6 +77,10 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
             Default: 0
 
+        --rapid-clearance MM
+            Set the Z clearance to leave above the part during rapid moves.
+            Default: 5
+
         --route horizontal|vertical|both
             Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.
             Default: both
