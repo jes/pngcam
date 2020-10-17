@@ -4,15 +4,8 @@ Pngcam takes in a heightmap and gives out Gcode to run a CNC machine.
 
 ## Usage
 
-You'll need to represent your part in a heightmap in a PNG file. To facilitate cutting parts out of surrounding stock, and leaving
-along features on exsiting parts, some special colours are supported:
-
-Colour | Meaning
--------|--------
-#ff00ff (magenta) | It's OK to cut this material but not necessary
-#ff0000 (red) | Do not cut into this material
-
-Apart from these special colours, the brightness of a pixel (defined as average of r,g,b) corresponds to the height, such that white is the highest and black
+You'll need to represent your part in a heightmap in a PNG file.
+The brightness of a pixel (defined as average of r,g,b) corresponds to the height, such that white is the highest and black
 is the lowest.
 
 As an example, let's look at first roughing out a shape with a 6mm end mill, and then move to a 2mm ball-nose end mill to finish up the part.
