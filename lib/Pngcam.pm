@@ -87,16 +87,24 @@ sub one_pass {
             };
             $x += $xstep; $y += $ystep;
         }
+
+        my $pct;
         if ($direction eq 'h') {
+            $pct = sprintf("%2d", 100 * $y / $self->{height});
             $xstep = -$xstep;
             $x += $xstep;
             $y += $self->{step_over};
         } else {
+            $pct = sprintf("%2d", 100 * $x / $self->{width});
             $ystep = -$ystep;
             $y += $ystep;
             $x += $self->{step_over};
         }
+        print STDERR "   \rGenerating path: $pct%";
     }
+
+    print STDERR "\rGenerating path: done.";
+    print STDERR "\nPost-processing...";
 
     # postprocess path to limit maximum stepdown
     my @extrapath;
@@ -187,8 +195,12 @@ sub one_pass {
         }
     }
 
+    print STDERR "\nWriting output...";
+
     # TODO: limit Z feed rate
     printf sprintf("$_->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
+
+    print STDERR "\nDone.\n";
 }
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
