@@ -201,6 +201,8 @@ sub cut_depth {
     my @depths;
 
     # attempt to sample every pixel in the circular footprint under the tool
+    # TODO: this can get pretty slow, perhaps we should instead sample a fixed number of pixels in a
+    # sensible pattern? Also, this seems ripe for a dynamic programming solution, but I can't quite see one
     for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
         for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
             my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
