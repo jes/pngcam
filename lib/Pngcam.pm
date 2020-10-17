@@ -43,6 +43,10 @@ sub run {
         $self->one_pass('h');
     }
 
+    # XXX: "unlimited" stepdown on second pass when doing 2 passes, as the material
+    # was already roughed out by the first pass
+    $self->{step_down} = 10000 if $self->{route} eq 'both';
+
     if ($self->{route} =~ /^(both|vertical)$/) {
         $self->one_pass('v');
     }
@@ -72,29 +76,84 @@ sub one_pass {
 
     my @path;
 
-    if ($direction eq 'h') {
+    # generate path to set Z position at each X/Y position encountered
+    while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
         while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
-            while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
-                push @path, {
-                    x => $x,
-                    y => -$y, # note: negative
-                    z => $self->cut_depth($x, $y),
-                };
-                $x += $xstep; $y += $ystep;
-            }
-            if ($direction eq 'h') {
-                $xstep = -$xstep;
-                $x += $xstep;
-                $y += $self->{step_over};
-            } else {
-                $ystep = -$ystep;
-                $y += $ystep;
-                $x += $self->{step_over};
-            }
+            push @path, {
+                x => $x,
+                y => -$y, # note: negative
+                z => $self->cut_depth($x, $y),
+                G => 'G1',
+            };
+            $x += $xstep; $y += $ystep;
+        }
+        if ($direction eq 'h') {
+            $xstep = -$xstep;
+            $x += $xstep;
+            $y += $self->{step_over};
+        } else {
+            $ystep = -$ystep;
+            $y += $ystep;
+            $x += $self->{step_over};
         }
     }
 
-    # TODO: postprocess path to limit maximum stepdown (if route eq 'both', then limit on 1st pass only)
+    # postprocess path to limit maximum stepdown
+    my @extrapath;
+    my $last = {
+        x => 0,
+        y => 0,
+        z => 0,
+    };
+    for (my $zheight = -$self->{step_down}; $zheight > -$self->{depth}; $zheight -= $self->{step_down}) {
+        my $cutting = 0;
+        for my $p (@path) {
+            if ($p->{z} < $zheight) {
+                # if we're not already cutting into the work, move the tool up and over
+                if (!$cutting) {
+                    push @extrapath, {
+                        x => $last->{x},
+                        y => $last->{y},
+                        z => 5,
+                        G => 'G1',
+                    };
+                    push @extrapath, {
+                        x => $p->{x},
+                        y => $p->{y},
+                        z => 5,
+                        G => 'G0',
+                    };
+                }
+                # add this location to the roughing path
+                push @extrapath, {
+                    x => $p->{x},
+                    y => $p->{y},
+                    z => $zheight,
+                    G => 'G1',
+                };
+                $last = $extrapath[$#extrapath];
+                $cutting = 1;
+            } else {
+                $cutting = 0;
+            }
+        }
+    }
+    if (@extrapath) {
+        # if we did a roughing step, then move back to origin before starting the real cuts
+        push @extrapath, {
+            x => $last->{x},
+            y => $last->{y},
+            z => 5,
+            G => 'G1',
+        };
+        push @extrapath, {
+            x => 0,
+            y => 0,
+            z => 5,
+            G => 'G0',
+        };
+    }
+    @path = (@extrapath, @path);
 
     # postprocess path to combine straight lines into a single larger run
     my $i = 2;
@@ -102,6 +161,12 @@ sub one_pass {
         my $first = $path[$i-2];
         my $prev = $path[$i-1];
         my $cur = $path[$i];
+
+        # don't combine path segments of different speed
+        if ($prev->{G} ne $cur->{G}) {
+            $i++;
+            next;
+        }
 
         my $prev_xz = gradient2d($first->{x}, $first->{z}, $prev->{x}, $prev->{z});
         my $cur_xz = gradient2d($prev->{x}, $prev->{z}, $cur->{x}, $cur->{z});
@@ -123,7 +188,7 @@ sub one_pass {
     }
 
     # TODO: limit Z feed rate
-    printf sprintf("G1 X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
+    printf sprintf("$_->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
 }
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
