@@ -67,26 +67,63 @@ sub one_pass {
 
     my ($x, $y, $z) = (0, 0, 0); # mm
 
-    # TODO: support vertical pass
-    die "vertical not supported" if $direction eq 'v';
+    my $xstep = ($direction eq 'h') ? $self->{step_over} : 0;
+    my $ystep = ($direction eq 'v') ? $self->{step_over} : 0;
+
+    my @path;
 
     if ($direction eq 'h') {
-        # TODO: cut in left and right direction instead of only right to save time
-        while ($y <= $self->{height}) {
-            while ($x <= $self->{width}) {
-                $z = $self->cut_depth($x, $y);
-                # TODO: limit Z feed rate
-                # TODO: support maximum stepdown
-                print "G1 X$x Z$z F$self->{xy_feedrate}\n";
+        while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
+            while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
+                push @path, {
+                    x => $x,
+                    y => -$y, # note: negative
+                    z => $self->cut_depth($x, $y),
+                };
+                $x += $xstep; $y += $ystep;
+            }
+            if ($direction eq 'h') {
+                $xstep = -$xstep;
+                $x += $xstep;
+                $y += $self->{step_over};
+            } else {
+                $ystep = -$ystep;
+                $y += $ystep;
                 $x += $self->{step_over};
             }
-            $y += $self->{step_over};
-            $x = 0;
-            print "G1 Z5 F$self->{z_feedrate}\n";
-            print "G0 X0 Y-$y F$self->{rapid_feedrate}\n"; # note Y is negative
-            print "G1 Z0 F$self->{z_feedrate}\n";
         }
     }
+
+    # TODO: postprocess path to limit maximum stepdown (if route eq 'both', then limit on 1st pass only)
+
+    # postprocess path to combine straight lines into a single larger run
+    my $i = 2;
+    while ($i < @path) {
+        my $first = $path[$i-2];
+        my $prev = $path[$i-1];
+        my $cur = $path[$i];
+
+        my $prev_xz = gradient2d($first->{x}, $first->{z}, $prev->{x}, $prev->{z});
+        my $cur_xz = gradient2d($prev->{x}, $prev->{z}, $cur->{x}, $cur->{z});
+        my $prev_yz = gradient2d($first->{y}, $first->{z}, $prev->{y}, $prev->{z});
+        my $cur_yz = gradient2d($prev->{y}, $prev->{z}, $cur->{y}, $cur->{z});
+
+        my $epsilon = 0.0001; # consider 2 gradients equal if they are within this error
+
+        # if the route first->prev has the same gradient as prev->cur, then first->prev->cur is a straight line,
+        # so we can remove prev and just go straight from first->cur
+
+        if (abs($cur_xz - $prev_xz) < $epsilon && abs($cur_yz - $prev_yz) < $epsilon) {
+            # delete prev (the element at index $i-1) from the path
+            splice @path, $i-1, 1;
+        } else {
+            # move onto next path segment
+            $i++;
+        }
+    }
+
+    # TODO: limit Z feed rate
+    printf sprintf("G1 X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
 }
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
@@ -136,10 +173,24 @@ sub get_brightness {
         return 0;
     }
 
+    # TODO: interpolate pixels at:
+    # floor(x),floor(y)
+    # floor(x),ceil(y)
+    # ceil(x),floor(y)
+    # ceil(x),ceil(y)
+
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
 
     return ($r+$g+$b)/3;
+}
+
+sub gradient2d {
+    my ($x1, $y1, $x2, $y2) = @_;
+
+    return ($x2-$x1==0) if ($y2 - $y1) == 0; # XXX: no divide by zero
+
+    return ($x2 - $x1) / ($y2 - $y1);
 }
 
 1;
