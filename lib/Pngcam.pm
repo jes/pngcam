@@ -59,6 +59,11 @@ sub run {
 sub one_pass {
     my ($self, $direction) = @_;
 
+    print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
+    print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
+    print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+    print STDERR "\n";
+
     print "(Start $direction pass)\n";
 
     # move to origin
