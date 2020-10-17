@@ -51,9 +51,6 @@ sub run {
         $self->one_pass('v');
     }
 
-    # lift tool up
-    print "G1 Z5 F$self->{z_feedrate}\n";
-
     # stop spindle
     print "M5\n";
 }
@@ -67,7 +64,6 @@ sub one_pass {
     # move to origin
     print "G91 G1 Z5 F$self->{z_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
     print "G90 G0 X0 Y0 F$self->{rapid_feedrate}\n"; # move to (0, 0) in x/y plane
-    print "G1 Z0 F$self->{z_feedrate}\n"; # move down to z=0
 
     my ($x, $y, $z) = (0, 0, 0); # mm
 
@@ -199,6 +195,9 @@ sub one_pass {
 
     # TODO: limit Z feed rate
     printf sprintf("$_->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
+
+    # pick up the tool at the end of the path
+    print "G1 Z5 F$self->{z_feedrate}\n";
 
     print STDERR "\nDone.\n";
 }
