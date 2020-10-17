@@ -257,7 +257,7 @@ sub cut_depth {
             my $zoffset = $self->{clearance};
             if ($self->{tool_shape} eq 'ball') {
                 # use Pythagoras to calculate z height at radius $rx in x/y plane from centre of ball
-                $zoffset = sqrt($tool_radius*$tool_radius - $rx*$rx) + $self->{clearance};
+                $zoffset = sqrt($tool_radius*$tool_radius - $rx*$rx) - $tool_radius + $self->{clearance};
             }
             push @depths, $self->get_depth($x+$sx, $y+$sy)+$zoffset;
         }
