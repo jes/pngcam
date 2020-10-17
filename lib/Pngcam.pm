@@ -31,6 +31,11 @@ sub new {
 sub run {
     my ($self) = @_;
 
+    print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
+    print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
+    print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+    print STDERR "\n";
+
     # setup defaults
     print "G21\n"; # units in mm
     print "G90\n"; # absolute coordinates
@@ -58,11 +63,6 @@ sub run {
 # direction = 'h' or 'v'
 sub one_pass {
     my ($self, $direction) = @_;
-
-    print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
-    print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
-    print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
-    print STDERR "\n";
 
     print "(Start $direction pass)\n";
 
@@ -198,8 +198,38 @@ sub one_pass {
 
     print STDERR "\nWriting output...";
 
-    # TODO: limit Z feed rate
-    printf sprintf("$_->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $_->{x}, $_->{y}, $_->{z}, $self->{xy_feedrate}) for @path;
+    $last = {
+        x => 0,
+        y => 0,
+        z => 0,
+    };
+    for my $p (@path) {
+        # calculate the maximum feed rate that will not cause movement in either the XY plane or the Z axis to exceed their configured feed rates
+        my $dx = $p->{x} - $last->{x};
+        my $dy = $p->{y} - $last->{y};
+        my $xy_dist = sqrt($dx*$dx + $dy*$dy);
+        my $z_dist = abs($p->{z} - $last->{z}); # XXX: is this exactly what we want? does feeding "upwards" really need slowing down?
+        my $total_dist = sqrt($xy_dist*$xy_dist + $z_dist*$z_dist);
+
+        next if $xy_dist == 0 && $z_dist == 0;
+
+        my $feed_rate;
+        if ($z_dist == 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
+            # XY motion is limiting factor on speed
+            # we could do this:
+            #    $feed_rate = ($total_dist / $xy_dist) * $self->{xy_feedrate};
+            # but seems safer to limit the total feed rate to the configured XY feed rate, maybe revisit this:
+            $feed_rate = $self->{xy_feedrate};
+        } else {
+            # Z motion is limiting factor on speed
+            $feed_rate = ($total_dist / $z_dist) * $self->{z_feedrate};
+        }
+
+        $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: why can this happen?
+
+        print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}, $p->{y}, $p->{z}, $feed_rate);
+        $last = $p;
+    }
 
     # pick up the tool at the end of the path
     print "G1 Z5 F$self->{z_feedrate}\n";
