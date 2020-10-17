@@ -68,6 +68,11 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
 
     Path generation options:
 
+        --roughing-only
+            Only do the roughing pass (based on --step-down) and do not do the finish pass. This is useful if you
+            want to use different parameters, or a different tool, for the roughing pass compared to the finish pass.
+            Default: do the finish pass as well as the roughing pass
+
         --clearance MM
             Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
             Default: 0

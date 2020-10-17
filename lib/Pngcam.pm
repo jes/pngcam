@@ -124,7 +124,7 @@ sub one_pass {
                         x => $last->{x},
                         y => $last->{y},
                         z => 5,
-                        G => 'G1',
+                        G => 'G0',
                     };
                     push @extrapath, {
                         x => $p->{x},
@@ -153,7 +153,7 @@ sub one_pass {
             x => $last->{x},
             y => $last->{y},
             z => 5,
-            G => 'G1',
+            G => 'G0',
         };
         push @extrapath, {
             x => 0,
@@ -162,7 +162,11 @@ sub one_pass {
             G => 'G0',
         };
     }
-    @path = (@extrapath, @path);
+    if ($self->{roughing_only}) {
+        @path = @extrapath;
+    } else {
+        @path = (@extrapath, @path);
+    }
 
     # postprocess path to combine straight lines into a single larger run
     my $i = 2;
@@ -214,18 +218,22 @@ sub one_pass {
         next if $xy_dist == 0 && $z_dist == 0;
 
         my $feed_rate;
-        if ($z_dist == 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
-            # XY motion is limiting factor on speed
-            # we could do this:
-            #    $feed_rate = ($total_dist / $xy_dist) * $self->{xy_feedrate};
-            # but seems safer to limit the total feed rate to the configured XY feed rate, maybe revisit this:
-            $feed_rate = $self->{xy_feedrate};
-        } else {
-            # Z motion is limiting factor on speed
-            $feed_rate = ($total_dist / $z_dist) * $self->{z_feedrate};
-        }
+        if ($p->{G} eq 'G0') {
+            $feed_rate = $self->{rapid_feedrate};
+        } elsif ($p->{G} eq 'G1') {
+            if ($z_dist == 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
+                # XY motion is limiting factor on speed
+                # we could do this:
+                #    $feed_rate = ($total_dist / $xy_dist) * $self->{xy_feedrate};
+                # but seems safer to limit the total feed rate to the configured XY feed rate, maybe revisit this:
+                $feed_rate = $self->{xy_feedrate};
+            } else {
+                # Z motion is limiting factor on speed
+                $feed_rate = ($total_dist / $z_dist) * $self->{z_feedrate};
+            }
 
-        $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: why can this happen?
+            $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: why can this happen?
+        }
 
         print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}, $p->{y}, $p->{z}, $feed_rate);
         $last = $p;

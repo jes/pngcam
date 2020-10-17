@@ -17,6 +17,7 @@ my $z_feedrate = 50; # mm/min
 my $rapid_feedrate = 10000; # mm/min
 my $spindle_speed = 10000; # rpm
 
+my $roughing_only = 0;
 my $clearance = 0; # mm
 my $route = 'both';
 
@@ -35,6 +36,7 @@ GetOptions(
     'rapid-feed-rate=f' => \$rapid_feedrate,
     'speed=f' => \$spindle_speed,
 
+    'roughing-only' => \$roughing_only,
     'clearance=f' => \$clearance,
     'route=s' => \$route,
 
@@ -66,6 +68,7 @@ my $pngcam = Pngcam->new(
     rapid_feedrate => $rapid_feedrate,
     spindle_speed => $spindle_speed,
 
+    roughing_only => $roughing_only,
     clearance => $clearance,
     route => $route,
 
@@ -117,6 +120,11 @@ Tool control options:
         Default: 10000
 
 Path generation options:
+
+    --roughing-only
+        Only do the roughing pass (based on --step-down) and do not do the finish pass. This is useful if you
+        want to use different parameters, or a different tool, for the roughing pass compared to the finish pass.
+        Default: do the finish pass as well as the roughing pass
 
     --clearance MM
         Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.
