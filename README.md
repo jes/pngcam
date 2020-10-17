@@ -25,7 +25,7 @@ And then essentially the same again, but this time with the 2mm ball-nose end mi
 The (0,0,0) point will be at the top left of the input image, with the part existing in the positive X direction and negative Y direction, and
 with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
 
-# Options
+## Options
 
     $ pngcam --usage
     Usage: pngcam [options] PNGFILE > GCODEFILE
@@ -100,6 +100,6 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Default: 10
 
 
-# Contact
+## Contact
 
 Pngcam is a program by James Stanley. You can email me at james@incoherency.co.uk or read my blog at https://incoherency.co.uk/
