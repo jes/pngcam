@@ -197,25 +197,23 @@ sub cut_depth {
 
     my $tool_radius = $self->{tool_diameter}/2 + $self->{clearance};
 
-    # XXX: currently we just look at the centre and 4 perimeter depths, should instead consider every pixel
-    # in the area of a circle of radius $tool_radius and calculate $zoffset with a function
-
-    # defaults for ball-nose end mill:
-    my $zoffset_centre = $self->{clearance};
-    my $zoffset_perimeter = -$tool_radius;
-    # override for flat end mill:
-    if ($self->{tool_shape} eq 'flat') {
-        $zoffset_perimeter = $self->{clearance};
-    }
-
     # TODO: ignore samples where the colour is magenta
-    my @depths = (
-        $self->get_depth($x,$y)+$zoffset_centre,
-        $self->get_depth($x+$tool_radius,$y)+$zoffset_perimeter,
-        $self->get_depth($x,$y+$tool_radius)+$zoffset_perimeter,
-        $self->get_depth($x-$tool_radius,$y)+$zoffset_perimeter,
-        $self->get_depth($x,$y-$tool_radius)+$zoffset_perimeter,
-    );
+    my @depths;
+
+    # attempt to sample every pixel in the circular footprint under the tool
+    for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
+        for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
+            my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
+            next if $rx > $tool_radius;
+
+            my $zoffset = $self->{clearance};
+            if ($self->{tool_shape} eq 'ball') {
+                # use Pythagoras to calculate z height at radius $rx in x/y plane from centre of ball
+                $zoffset = sqrt($tool_radius*$tool_radius - $rx*$rx) + $self->{clearance};
+            }
+            push @depths, $self->get_depth($x+$sx, $y+$sy)+$zoffset;
+        }
+    }
 
     return max(@depths);
 }
