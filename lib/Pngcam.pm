@@ -124,7 +124,7 @@ sub one_pass {
                         x => $last->{x},
                         y => $last->{y},
                         z => $self->{rapid_clearance},
-                        G => 'G0',
+                        G => 'G1',
                     };
                     push @extrapath, {
                         x => $p->{x},
@@ -153,7 +153,7 @@ sub one_pass {
             x => $last->{x},
             y => $last->{y},
             z => $self->{rapid_clearance},
-            G => 'G0',
+            G => 'G1',
         };
         push @extrapath, {
             x => 0,
