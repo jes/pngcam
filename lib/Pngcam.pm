@@ -212,7 +212,7 @@ sub one_pass {
         my $dx = $p->{x} - $last->{x};
         my $dy = $p->{y} - $last->{y};
         my $xy_dist = sqrt($dx*$dx + $dy*$dy);
-        my $z_dist = abs($p->{z} - $last->{z}); # XXX: is this exactly what we want? does feeding "upwards" really need slowing down?
+        my $z_dist = $last->{z} - $p->{z};
         my $total_dist = sqrt($xy_dist*$xy_dist + $z_dist*$z_dist);
 
         next if $xy_dist == 0 && $z_dist == 0;
@@ -221,8 +221,8 @@ sub one_pass {
         if ($p->{G} eq 'G0') {
             $feed_rate = $self->{rapid_feedrate};
         } elsif ($p->{G} eq 'G1') {
-            if ($z_dist == 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
-                # XY motion is limiting factor on speed
+            if ($z_dist <= 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
+                # XY motion is limiting factor on speed (moving either flat or upwards in z)
                 # we could do this:
                 #    $feed_rate = ($total_dist / $xy_dist) * $self->{xy_feedrate};
                 # but seems safer to limit the total feed rate to the configured XY feed rate, maybe revisit this:
