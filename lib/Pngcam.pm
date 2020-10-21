@@ -181,14 +181,14 @@ sub one_pass {
             next;
         }
 
-        my $prev_xz = gradient2d($first->{x}, $first->{z}, $prev->{x}, $prev->{z});
-        my $cur_xz = gradient2d($prev->{x}, $prev->{z}, $cur->{x}, $cur->{z});
-        my $prev_yz = gradient2d($first->{y}, $first->{z}, $prev->{y}, $prev->{z});
-        my $cur_yz = gradient2d($prev->{y}, $prev->{z}, $cur->{y}, $cur->{z});
+        my $prev_xz = atan2($prev->{z}-$first->{z}, $prev->{x}-$first->{x});
+        my $cur_xz = atan2($cur->{z}-$prev->{z}, $cur->{x}-$prev->{x});
+        my $prev_yz = atan2($prev->{z}-$first->{z}, $prev->{y}-$first->{y});
+        my $cur_yz = atan2($cur->{z}-$prev->{z}, $cur->{y}-$prev->{y});
 
-        my $epsilon = 0.0001; # consider 2 gradients equal if they are within this error
+        my $epsilon = 0.0001; # consider 2 angles equal if they are within this error
 
-        # if the route first->prev has the same gradient as prev->cur, then first->prev->cur is a straight line,
+        # if the route first->prev has the same angle as prev->cur, then first->prev->cur is a straight line,
         # so we can remove prev and just go straight from first->cur
 
         if (abs($cur_xz - $prev_xz) < $epsilon && abs($cur_yz - $prev_yz) < $epsilon) {
@@ -302,14 +302,6 @@ sub get_brightness {
     my ($r,$g,$b) = $self->{image}->rgb($col);
 
     return ($r+$g+$b)/3;
-}
-
-sub gradient2d {
-    my ($x1, $y1, $x2, $y2) = @_;
-
-    return ($x2-$x1==0) if ($y2 - $y1) == 0; # XXX: no divide by zero
-
-    return ($x2 - $x1) / ($y2 - $y1);
 }
 
 1;
