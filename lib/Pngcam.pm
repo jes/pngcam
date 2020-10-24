@@ -288,6 +288,9 @@ sub get_depth {
 sub get_brightness {
     my ($self, $x, $y) = @_;
 
+    $x = $self->{pxwidth}-1-$x if $self->{x_flip};
+    $y = $self->{pxheight}-1-$y if $self->{y_flip};
+
     if ($x < 0 || $y < 0 || $x >= $self->{pxwidth} || $y >= $self->{pxheight}) {
         return 0;
     }
@@ -301,7 +304,11 @@ sub get_brightness {
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
 
-    return ($r+$g+$b)/3;
+    if ($self->{invert}) {
+        return 255-($r+$g+$b)/3;
+    } else {
+        return ($r+$g+$b)/3;
+    }
 }
 
 1;

@@ -99,6 +99,14 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the total depth of the part in mm.
             Default: 10
 
+        --x-flip
+            Flip the image in the X axis. This is useful when you want to cut the same shape on the bottom of a part. The origin will still be at top left of the finished toolpath.
+
+        --y-flip
+            Flip the image in the Y axis. This is useful when you want to cut the same shape on the bottom of a part. The origin will still be at top left of the finished toolpath.
+
+        --invert
+            Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
 
 ## Contact
 

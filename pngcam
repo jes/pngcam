@@ -25,6 +25,9 @@ my $route = 'both';
 my $width; # mm
 my $height; # mm
 my $depth = 10; # mm
+my $x_flip;
+my $y_flip;
+my $invert;
 
 GetOptions(
     'tool-shape=s' => \$tool_shape,
@@ -45,6 +48,9 @@ GetOptions(
     'width=f' => \$width,
     'height=f' => \$height,
     'depth=f' => \$depth,
+    'x-flip' => \$x_flip,
+    'y-flip' => \$y_flip,
+    'invert' => \$invert,
 
     'help' => sub { help() },
     'usage' => sub { help() },
@@ -78,6 +84,9 @@ my $pngcam = Pngcam->new(
     width => $width,
     height => $height,
     depth => $depth,
+    x_flip => $x_flip,
+    y_flip => $y_flip,
+    invert => $invert,
 
     image_file => $image_file,
 );
@@ -154,6 +163,15 @@ Heightmap options:
     --depth MM
         Set the total depth of the part in mm.
         Default: 10
+
+    --x-flip
+        Flip the image in the X axis. This is useful when you want to cut the same shape on the bottom of a part. The origin will still be at top left of the finished toolpath.
+
+    --y-flip
+        Flip the image in the Y axis. This is useful when you want to cut the same shape on the bottom of a part. The origin will still be at top left of the finished toolpath.
+
+    --invert
+        Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
 
 Pngcam is a program by James Stanley. You can email me at james\@incoherency.co.uk or read my blog at https://incoherency.co.uk/
 };
