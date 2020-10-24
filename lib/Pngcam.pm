@@ -5,6 +5,7 @@ use warnings;
 
 use GD;
 use List::Util qw(min max);
+use POSIX qw(floor);
 
 sub new {
     my ($pkg, %opts) = @_;
@@ -293,6 +294,9 @@ sub get_depth {
 # return pixel brightness at (x,y) pixels, 0..255
 sub get_brightness {
     my ($self, $x, $y) = @_;
+
+    $x = floor($x);
+    $y = floor($y);
 
     $x = $self->{pxwidth}-1-$x if $self->{x_flip};
     $y = $self->{pxheight}-1-$y if $self->{y_flip};
