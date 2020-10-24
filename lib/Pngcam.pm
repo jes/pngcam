@@ -31,10 +31,12 @@ sub new {
 sub run {
     my ($self) = @_;
 
-    print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
-    print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
-    print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
-    print STDERR "\n";
+    if (!$self->{quiet}) {
+        print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
+        print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
+        print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+        print STDERR "\n";
+    }
 
     # setup defaults
     print "G21\n"; # units in mm
@@ -101,11 +103,13 @@ sub one_pass {
             $y += $ystep;
             $x += $self->{step_over};
         }
-        print STDERR "   \rGenerating path: $pct%";
+        print STDERR "   \rGenerating path: $pct%" if !$self->{quiet};
     }
 
-    print STDERR "\rGenerating path: done.";
-    print STDERR "\nPost-processing...";
+    if (!$self->{quiet}) {
+        print STDERR "\rGenerating path: done.";
+        print STDERR "\nPost-processing...";
+    }
 
     # postprocess path to limit maximum stepdown
     my @extrapath;
@@ -202,7 +206,7 @@ sub one_pass {
         }
     }
 
-    print STDERR "\nWriting output...";
+    print STDERR "\nWriting output..." if !$self->{quiet};
 
     $last = {
         x => 0,
@@ -244,7 +248,7 @@ sub one_pass {
     # pick up the tool at the end of the path
     print "G1 Z$self->{rapid_clearance} F$self->{z_feedrate}\n";
 
-    print STDERR "\nDone.\n";
+    print STDERR "\nDone.\n" if !$self->{quiet};
 }
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance

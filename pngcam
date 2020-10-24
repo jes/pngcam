@@ -29,6 +29,8 @@ my $x_flip;
 my $y_flip;
 my $invert;
 
+my $quiet;
+
 GetOptions(
     'tool-shape=s' => \$tool_shape,
     'tool-diameter=f' => \$tool_diameter,
@@ -51,6 +53,8 @@ GetOptions(
     'x-flip' => \$x_flip,
     'y-flip' => \$y_flip,
     'invert' => \$invert,
+
+    'quiet' => \$quiet,
 
     'help' => sub { help() },
     'usage' => sub { help() },
@@ -87,6 +91,8 @@ my $pngcam = Pngcam->new(
     x_flip => $x_flip,
     y_flip => $y_flip,
     invert => $invert,
+
+    quiet => $quiet,
 
     image_file => $image_file,
 );
@@ -172,6 +178,11 @@ Heightmap options:
 
     --invert
         Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
+
+Output options:
+
+    --quiet
+        Suppress output of dimensions, resolutions, and progress.
 
 Pngcam is a program by James Stanley. You can email me at james\@incoherency.co.uk or read my blog at https://incoherency.co.uk/
 };
