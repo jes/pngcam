@@ -2,6 +2,31 @@
 
 Pngcam takes in a heightmap and gives out Gcode to run a CNC machine.
 
+## Building
+
+Dependencies:
+
+ - perl
+ - GD
+
+You can install GD with:
+
+    $ sudo apt install libgd-perl
+
+on Ubuntu and probably others.
+
+To build the "semi-fat-packed" Perl script:
+
+    $ make
+
+To install it to `/usr/bin/pngcam`:
+
+    $ sudo make install
+
+If you want to run it without building, then you can use something like:
+
+    $ PERL5LIB=lib ./pngcam [...]
+
 ## Usage
 
 You'll need to represent your part in a heightmap in a PNG file.
