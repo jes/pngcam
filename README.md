@@ -9,11 +9,9 @@ Dependencies:
  - perl
  - GD
 
-You can install GD with:
+You can install GD on Ubuntu with:
 
     $ sudo apt install libgd-perl
-
-on Ubuntu and probably others.
 
 To build the "semi-fat-packed" Perl script:
 
