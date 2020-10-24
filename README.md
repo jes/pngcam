@@ -2,6 +2,8 @@
 
 Pngcam takes in a heightmap and gives out Gcode to run a CNC machine.
 
+I wrote a bit about it in https://incoherency.co.uk/blog/stories/cnc-heightmap-toolpaths.html
+
 ## Building
 
 Dependencies:
