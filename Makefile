@@ -8,3 +8,7 @@ install: build/pngcam
 
 clean:
 	rm -f build/pngcam
+	rm -f t/data/*.new
+
+test:
+	prove -l t/

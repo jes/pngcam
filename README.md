@@ -131,6 +131,23 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
         --invert
             Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
 
+    Output options:
+
+        --quiet
+            Suppress output of dimensions, resolutions, and progress.
+
+## Tests
+
+To run tests, either:
+
+    $ prove -l t/
+
+or
+
+    $ make test
+
+If a test fails you might want to try diffing the old (expected) and new versions of the G-code files to work out what went wrong.
+
 ## Contact
 
 Pngcam is a program by James Stanley. You can email me at james@incoherency.co.uk or read my blog at https://incoherency.co.uk/
