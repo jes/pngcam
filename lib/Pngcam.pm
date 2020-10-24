@@ -181,6 +181,8 @@ sub one_pass {
             next;
         }
 
+        my $prev_xy = atan2($prev->{y}-$first->{y}, $prev->{x}-$first->{x});
+        my $cur_xy = atan2($cur->{y}-$prev->{y}, $cur->{x}-$prev->{x});
         my $prev_xz = atan2($prev->{z}-$first->{z}, $prev->{x}-$first->{x});
         my $cur_xz = atan2($cur->{z}-$prev->{z}, $cur->{x}-$prev->{x});
         my $prev_yz = atan2($prev->{z}-$first->{z}, $prev->{y}-$first->{y});
@@ -191,7 +193,7 @@ sub one_pass {
         # if the route first->prev has the same angle as prev->cur, then first->prev->cur is a straight line,
         # so we can remove prev and just go straight from first->cur
 
-        if (abs($cur_xz - $prev_xz) < $epsilon && abs($cur_yz - $prev_yz) < $epsilon) {
+        if (abs($cur_xy - $prev_xy) < $epsilon && abs($cur_xz - $prev_xz) < $epsilon && abs($cur_yz - $prev_yz) < $epsilon) {
             # delete prev (the element at index $i-1) from the path
             splice @path, $i-1, 1;
         } else {
