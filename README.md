@@ -4,22 +4,29 @@ Pngcam takes in a heightmap and gives out Gcode to run a CNC machine.
 
 I wrote a bit about it in https://incoherency.co.uk/blog/stories/cnc-heightmap-toolpaths.html
 
+Pngcam also includes a heightmap rendering program called pngcam-render.
+
 ## Building
 
 Dependencies:
 
  - perl
  - GD
+ - CAD::Format::STL (for `pngcam-render` only)
 
 You can install GD on Ubuntu with:
 
     $ sudo apt install libgd-perl
 
-To build the "semi-fat-packed" Perl script:
+I'd suggest installing CAD::Format::STL from CPAN using cpanminus:
+
+    $ sudo apt install cpanminus && sudo cpanm CAD::Format::STL
+
+To build the "semi-fat-packed" Perl scripts:
 
     $ make
 
-To install it to `/usr/bin/pngcam`:
+To install it to `/usr/bin/`:
 
     $ sudo make install
 
