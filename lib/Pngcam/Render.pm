@@ -50,7 +50,7 @@ sub new {
         $self->{height} = $self->{width} / $aspect_ratio;
     }
 
-    $self->{image} = GD::Image->new($self->{width}, $self->{height}, 1);
+    $self->{image} = GD::Image->new($self->{width} + $self->{border}*2, $self->{height} + $self->{border}*2, 1);
 
     # calculate pixels per mm
     $self->{x_px_mm} = $self->{width} / $self->{mmwidth};
@@ -85,8 +85,8 @@ sub mm_to_px {
 
     my ($x,$y,$z) = @$v;
 
-    $x = ($x - $self->{minx}) * $self->{x_px_mm};
-    $y = ($self->{maxy} - $y) * $self->{y_px_mm}; # note y axis is inverted
+    $x = $self->{border} + ($x - $self->{minx}) * $self->{x_px_mm};
+    $y = $self->{border} + ($self->{maxy} - $y) * $self->{y_px_mm}; # note y axis is inverted
     $z = ($z - $self->{minz}) * $self->{z_px_mm};
 
     return [$x, $y, $z];
