@@ -12,7 +12,7 @@ sub new {
 
     my $self = bless \%opts, $pkg;
 
-    $self->{image} = GD::Image->new($self->{image_file});
+    $self->{image} = GD::Image->newFromPng($self->{image_file}, 1);
     ($self->{pxwidth}, $self->{pxheight}) = $self->{image}->getBounds;
 
     my $aspect_ratio = $self->{pxwidth} / $self->{pxheight};
