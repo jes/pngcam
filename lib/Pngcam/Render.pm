@@ -23,7 +23,7 @@ sub new {
 
     my $stl = CAD::Format::STL->new->load($self->{stl_file});
     
-    # TODO: what do we do if there is mroe than one part?
+    # TODO: what do we do if there is more than one part?
 
     for my $data ($stl->part->facets) {
         my ($normal, @verts) = @$data;
