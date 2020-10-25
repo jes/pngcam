@@ -10,10 +10,14 @@ my $width;
 my $height;
 my $border = 32; # px
 
+my $quiet;
+
 GetOptions(
     'border=f' => \$border,
     'width=f' => \$width,
     'height=f' => \$height,
+
+    'quiet' => \$quiet,
 
     'help' => sub { help() },
     'usage' => sub { help() },
@@ -29,6 +33,7 @@ my $render = Pngcam::Render->new(
     width => $width,
     height => $height,
     stl_file => $stl_file,
+    quiet => $quiet,
 );
 $render->run;
 $render->save("$stl_file.png");
@@ -55,6 +60,9 @@ Options:
         automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
         The output image will be this talg, plus a border on both sides.
         Default: N/A
+
+    --quiet
+        Suppress output of dimensions and resolutions.
 
 Pngcam-render is a program by James Stanley. You can email me at james\@incoherency.co.uk or read my blog at https://incoherency.co.uk/
 };

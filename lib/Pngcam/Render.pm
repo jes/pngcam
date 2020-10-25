@@ -63,6 +63,15 @@ sub new {
 sub run {
     my ($self) = @_;
 
+    if (!$self->{quiet}) {
+        print STDERR "$self->{width}x$self->{width} px depth map. $self->{mmwidth}x$self->{mmheight} mm work piece.\n";
+        my $border_x_mm = $self->{border} / $self->{x_px_mm};
+        my $border_y_mm = $self->{border} / $self->{y_px_mm};
+        print STDERR "X border of $self->{border} px = $border_x_mm mm. Y border of $self->{border} px = $border_y_mm mm.\n";
+        print STDERR "Output image is " . ($self->{width}+$self->{border}*2) . "x" . ($self->{height}+$self->{border}*2) . " px = " . ($self->{mmwidth}+$border_x_mm*2) . "x" . ($self->{mmheight} + $border_y_mm*2) . " mm.\n";
+        print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
+    }
+
     # clear to black
     my $black = $self->{image}->colorAllocate(0,0,0);
     $self->{image}->filledRectangle(0, 0, $self->{width}, $self->{height}, $black);
