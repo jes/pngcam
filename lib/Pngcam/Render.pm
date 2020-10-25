@@ -183,7 +183,7 @@ sub iterate_line {
     my ($x,$y,$z) = @$p1;
 
     # visit each point on the line, stepping 1px at a time along a diagonal
-    for (1..ceil($length)) {
+    for (1..floor($length)) {
         $x += $stepx;
         $y += $stepy;
         $z += $stepz;
