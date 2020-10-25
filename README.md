@@ -152,7 +152,7 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
     $ pngcam-render --usage
     Usage: pngcam-render [options] STLFILE
 
-    This program will read in the STLFILE and render it to a heightmap in STLFILE.png.
+    This program will read in the STLFILE and render it to a heightmap.
 
     Options:
 
@@ -171,6 +171,17 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
             The output image will be this talg, plus a border on both sides.
             Default: N/A
+
+        --bottom
+            View from the bottom, as if the part were rotated through 180 degrees around the Y axis.
+            Default: viewed from the top
+
+        --png PNGFILE
+            Set the name of the output file. If none is give, this will just be the STL file with ".png" appended.
+            Default: STLFILE.png
+
+        --quiet
+            Suppress output of dimensions and resolutions.
 
 ## Tests
 

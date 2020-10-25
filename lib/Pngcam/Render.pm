@@ -94,9 +94,17 @@ sub mm_to_px {
 
     my ($x,$y,$z) = @$v;
 
-    $x = $self->{border} + ($x - $self->{minx}) * $self->{x_px_mm};
     $y = $self->{border} + ($self->{maxy} - $y) * $self->{y_px_mm}; # note y axis is inverted
-    $z = ($z - $self->{minz}) * $self->{z_px_mm};
+
+    if ($self->{bottom}) {
+        # view from bottom (flip x and z)
+        $x = $self->{border} + ($self->{maxx} - $x) * $self->{x_px_mm};
+        $z = ($self->{maxz} - $z) * $self->{z_px_mm};
+    } else {
+        # view from top
+        $x = $self->{border} + ($x - $self->{minx}) * $self->{x_px_mm};
+        $z = ($z - $self->{minz}) * $self->{z_px_mm};
+    }
 
     return [$x, $y, $z];
 }
