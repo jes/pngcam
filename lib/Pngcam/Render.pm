@@ -156,7 +156,7 @@ sub iterate_line {
     my ($self, $p1, $p2, $cb) = @_;
 
     # visit the first point
-    $cb->(@$p1);
+    $cb->(map { floor($_) } @$p1);
 
     my $dx = $p2->[0] - $p1->[0];
     my $dy = $p2->[1] - $p1->[1];
