@@ -122,12 +122,14 @@ sub draw_triangle {
 
     # 2. fill in scanlines
     for my $y ($miny .. $maxy) {
+        my $startx = $minx{$y}[0];
+        my $endx = $maxx{$y}[0];
         my $startz = $minx{$y}[2];
-        my $endz = $minx{$y}[2];
+        my $endz = $maxx{$y}[2];
         my $zchange = $endz - $startz;
-        my $xlength = $maxx{$y}[0] - $minx{$y}[0];
-        for my $x ($minx{$y}[0] .. $maxx{$y}[0]) {
-            my $k = $xlength ? ($x - $minx{$y}[0]) / $xlength : 1;
+        my $xlength = $endx - $startx;
+        for my $x ($startx .. $endx) {
+            my $k = $xlength ? ($x - $startx) / $xlength : 1;
             my $z = $startz + $zchange * $k;
             $self->plot($x, $y, $z);
         }
