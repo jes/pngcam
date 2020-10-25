@@ -62,6 +62,8 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
     $ pngcam --usage
     Usage: pngcam [options] PNGFILE > GCODEFILE
 
+    This program will read in a heightmap from PNGFILE and write G-code to stdout.
+
     Tool options:
 
         --tool-shape flat|ball
@@ -144,6 +146,31 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
 
         --quiet
             Suppress output of dimensions, resolutions, and progress.
+
+## Pngcam-render options
+
+    $ pngcam-render --usage
+    Usage: pngcam-render [options] STLFILE
+
+    This program will read in the STLFILE and render it to a heightmap in STLFILE.png.
+
+    Options:
+
+        --border PX
+            Draw a border around the part.
+            Default: 32
+
+        --width PX
+            Set the width of the part in pixels. If height is not specified, height will be calculated
+            automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
+            The output image will be this wide, plus a border on both sides.
+            Default: 400
+
+        --height PX
+            Set the height of the part in pixels. If width is not specified, width will be calculated
+            automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
+            The output image will be this talg, plus a border on both sides.
+            Default: N/A
 
 ## Tests
 

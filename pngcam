@@ -101,6 +101,8 @@ $pngcam->run;
 sub help {
     print qq{Usage: pngcam [options] PNGFILE > GCODEFILE
 
+This program will read in a heightmap from PNGFILE and write G-code to stdout.
+
 Tool options:
 
     --tool-shape flat|ball

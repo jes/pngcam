@@ -14,6 +14,9 @@ GetOptions(
     'border=f' => \$border,
     'width=f' => \$width,
     'height=f' => \$height,
+
+    'help' => sub { help() },
+    'usage' => sub { help() },
 ) or help();
 
 help() if @ARGV != 1;
@@ -33,6 +36,8 @@ $render->save("$stl_file.png");
 sub help {
     print qq{Usage: pngcam-render [options] STLFILE
 
+This program will read in the STLFILE and render it to a heightmap in STLFILE.png.
+
 Options:
 
     --border PX
@@ -50,6 +55,8 @@ Options:
         automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
         The output image will be this talg, plus a border on both sides.
         Default: N/A
+
+Pngcam-render is a program by James Stanley. You can email me at james\@incoherency.co.uk or read my blog at https://incoherency.co.uk/
 };
 
     exit 0;
