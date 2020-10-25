@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pngcam::Render;
+
+my $width;
+my $height;
+
+GetOptions(
+    'width=f' => \$width,
+    'height=f' => \$height,
+) or help();
+
+help() if @ARGV != 1;
+my $stl_file = shift @ARGV;
+
+$width = 400 if !defined $width && !defined $height;
+
+my $render = Pngcam::Render->new(
+    width => $width,
+    height => $height,
+    stl_file => $stl_file,
+);
+$render->run;
+$render->save("$stl_file.png");
+
+sub help {
+    print qq{Usage: pngcam-render [options] STLFILE
+
+Options:
+
+    --width PX
+        Set the width of the output image in pixels. If height is not specified, height will be calculated
+        automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
+        Default: 400
+
+    --height PX
+        Set the height of the output image in pixels. If width is not specified, width will be calculated
+        automatically to maintain aspect ratio. If neither are specified, width=400px is assumed.
+        Default: N/A
+};
+
+    exit 0;
+}
