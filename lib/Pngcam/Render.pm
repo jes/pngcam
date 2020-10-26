@@ -64,9 +64,11 @@ sub run {
     my ($self) = @_;
 
     if (!$self->{quiet}) {
-        print STDERR "$self->{width}x$self->{width} px depth map. $self->{mmwidth}x$self->{mmheight} mm work piece.\n";
+        my $mmz = $self->{maxz} - $self->{minz};
         my $border_x_mm = $self->{border} / $self->{x_px_mm};
         my $border_y_mm = $self->{border} / $self->{y_px_mm};
+        print STDERR "$self->{width}x$self->{width} px depth map. $self->{mmwidth}x$self->{mmheight} mm work piece.\n";
+        print STDERR "Work piece is $mmz mm tall in Z axis.\n";
         print STDERR "X border of $self->{border} px = $border_x_mm mm. Y border of $self->{border} px = $border_y_mm mm.\n";
         print STDERR "Output image is " . ($self->{width}+$self->{border}*2) . "x" . ($self->{height}+$self->{border}*2) . " px = " . ($self->{mmwidth}+$border_x_mm*2) . "x" . ($self->{mmheight} + $border_y_mm*2) . " mm.\n";
         print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
