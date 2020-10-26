@@ -138,7 +138,16 @@ sub one_pass {
                         G => 'G0',
                     };
                 }
-                # add this location to the roughing path
+                if ($zheight + $self->{rapid_clearance} < $self->{rapid_clearance}) {
+                    # rapidly move down to $rapid_clearance above where the last cut depth was
+                    push @extrapath, {
+                        x => $p->{x},
+                        y => $p->{y},
+                        z => $zheight + $self->{rapid_clearance},
+                        G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
+                    };
+                }
+                # slowly move down to the cut depth
                 push @extrapath, {
                     x => $p->{x},
                     y => $p->{y},
@@ -219,16 +228,21 @@ sub one_pass {
         my $dx = $p->{x} - $last->{x};
         my $dy = $p->{y} - $last->{y};
         my $xy_dist = sqrt($dx*$dx + $dy*$dy);
-        my $z_dist = $last->{z} - $p->{z};
+        my $z_dist = $p->{z} - $last->{z};
         my $total_dist = sqrt($xy_dist*$xy_dist + $z_dist*$z_dist);
 
         next if $xy_dist == 0 && $z_dist == 0;
 
         my $feed_rate;
-        if ($p->{G} eq 'G0') {
+        if ($p->{G} eq '_G0') {
+            # XXX: turn _G0 into a fast G1 (this is used for quickly lowering the tool down to where it needs to start
+            # cutting during the roughing phase, but not used for actual cuts)
+            $p->{G} = 'G1';
+            $feed_rate = $self->{rapid_feedrate};
+        } elsif ($p->{G} eq 'G0' || ($xy_dist == 0 && $z_dist > 0)) {
             $feed_rate = $self->{rapid_feedrate};
         } elsif ($p->{G} eq 'G1') {
-            if ($z_dist <= 0 || ($xy_dist/$z_dist > $self->{xy_feedrate}/$self->{z_feedrate})) {
+            if ($z_dist >= 0 || (abs($xy_dist/$z_dist) > abs($self->{xy_feedrate}/$self->{z_feedrate}))) {
                 # XY motion is limiting factor on speed (moving either flat or upwards in z)
                 # we could do this:
                 #    $feed_rate = ($total_dist / $xy_dist) * $self->{xy_feedrate};
@@ -236,10 +250,10 @@ sub one_pass {
                 $feed_rate = $self->{xy_feedrate};
             } else {
                 # Z motion is limiting factor on speed
-                $feed_rate = ($total_dist / $z_dist) * $self->{z_feedrate};
+                $feed_rate = abs($total_dist / $z_dist) * $self->{z_feedrate};
             }
 
-            $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: why can this happen?
+            $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: can this happen?
         }
 
         print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}, $p->{y}, $p->{z}, $feed_rate);
