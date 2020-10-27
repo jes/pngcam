@@ -123,8 +123,8 @@ sub one_pass {
         my $cutting = 0;
         for my $p (@path) {
             if ($p->{z} < $zheight) {
-                # if we're not already cutting into the work, move the tool up and over
-                if (!$cutting) {
+                # if we're not already cutting into the work, and the new point isn't adjacent to the last one, move the tool up and over
+                if (!$cutting && !$self->adjacent_points($last->{x}, $last->{y}, $p->{x}, $p->{y})) {
                     push @extrapath, {
                         x => $last->{x},
                         y => $last->{y},
@@ -263,6 +263,19 @@ sub one_pass {
     print "G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n";
 
     print STDERR "\nDone.\n" if !$self->{quiet};
+}
+
+# return 1 if the 2 points are orthogonal and 1 stepover apart
+sub adjacent_points {
+    my ($self, $x1, $y1, $x2, $y2) = @_;
+
+    my $epsilon = 0.0001;
+
+    if (abs($x2 - $x1) < $epsilon) {
+        return (abs($y2 - $y1) - $self->{step_over}) < $epsilon;
+    } elsif (abs($y2 - $y1) < $epsilon) {
+        return (abs($x2 - $x1) - $self->{step_over}) < $epsilon;
+    }
 }
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
