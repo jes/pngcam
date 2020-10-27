@@ -70,7 +70,7 @@ sub one_pass {
     print "(Start $direction pass)\n";
 
     # move to origin
-    print "G91 G1 Z$self->{rapid_clearance} F$self->{z_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
+    print "G91 G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
     print "G90 G0 X0 Y0 F$self->{rapid_feedrate}\n"; # move to (0, 0) in x/y plane
 
     my ($x, $y, $z) = (0, 0, 0); # mm
@@ -260,7 +260,7 @@ sub one_pass {
     }
 
     # pick up the tool at the end of the path
-    print "G1 Z$self->{rapid_clearance} F$self->{z_feedrate}\n";
+    print "G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n";
 
     print STDERR "\nDone.\n" if !$self->{quiet};
 }
