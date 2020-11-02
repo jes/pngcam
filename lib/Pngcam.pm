@@ -119,7 +119,8 @@ sub one_pass {
         y => 0,
         z => 0,
     };
-    for (my $zheight = -$self->{step_down}; $zheight > -$self->{depth}; $zheight -= $self->{step_down}) {
+    my $deepest = -$self->{depth} - ($self->{deep_black} ? ($self->{tool_diameter}/2) : 0);
+    for (my $zheight = -$self->{step_down}; $zheight > $deepest; $zheight -= $self->{step_down}) {
         my $cutting = 0;
         for my $p (@path) {
             if ($p->{z} < $zheight) {
