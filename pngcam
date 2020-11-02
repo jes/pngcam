@@ -28,6 +28,7 @@ my $depth = 10; # mm
 my $x_flip;
 my $y_flip;
 my $invert;
+my $deep_black;
 
 my $quiet;
 
@@ -53,6 +54,7 @@ GetOptions(
     'x-flip' => \$x_flip,
     'y-flip' => \$y_flip,
     'invert' => \$invert,
+    'deep-black' => \$deep_black,
 
     'quiet' => \$quiet,
 
@@ -91,6 +93,7 @@ my $pngcam = Pngcam->new(
     x_flip => $x_flip,
     y_flip => $y_flip,
     invert => $invert,
+    deep_black => $deep_black,
 
     quiet => $quiet,
 
@@ -180,6 +183,11 @@ Heightmap options:
 
     --invert
         Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
+
+    --deep-black
+        Let the tool cut below the full depth into black (0,0,0) if this would allow better reproduction of the non-black parts of the heightmap.
+        Only really applicable with a ball-nose end mill.
+        Default: treat black (0,0,0) as a hard limit on cut depth
 
 Output options:
 

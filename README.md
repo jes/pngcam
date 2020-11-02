@@ -142,6 +142,11 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
         --invert
             Invert the colours in the image, so that white is the deepest cut and black is the shallowest.
 
+        --deep-black
+            Let the tool cut below the full depth into black (0,0,0) if this would allow better reproduction of the non-black parts of the heightmap.
+            Only really applicable with a ball-nose end mill.
+            Default: treat black (0,0,0) as a hard limit on cut depth
+
     Output options:
 
         --quiet

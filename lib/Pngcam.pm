@@ -284,8 +284,10 @@ sub cut_depth {
 
     my $tool_radius = $self->{tool_diameter}/2 + $self->{clearance};
 
+    my $black_probe_depth = -$self->{depth} - $tool_radius + $self->{clearance};
+
     # TODO: ignore samples where the colour is magenta
-    my @depths;
+    my @depths = ($black_probe_depth - 1);
 
     # attempt to sample every pixel in the circular footprint under the tool
     # TODO: this can get pretty slow, perhaps we should instead sample a fixed number of pixels in a
@@ -300,11 +302,31 @@ sub cut_depth {
                 # use Pythagoras to calculate z height at radius $rx in x/y plane from centre of ball
                 $zoffset = sqrt($tool_radius*$tool_radius - $rx*$rx) - $tool_radius + $self->{clearance};
             }
-            push @depths, $self->get_depth($x+$sx, $y+$sy)+$zoffset;
+
+            # only add this depth sample if we're not in deep-black mode, or if this point isn't black
+            if (!$self->{deep_black} || !$self->is_black($x+$sx, $y+$sy)) {
+                push @depths, $self->get_depth($x+$sx, $y+$sy)+$zoffset;
+            }
         }
     }
 
-    return max(@depths);
+    my $max_depth = max(@depths);
+
+    # if the cut is all on black colour then just cut to $self->{depth} instead of below
+    if ($max_depth < $black_probe_depth) {
+        $max_depth = -$self->{depth} + $self->{clearance};
+    }
+
+    return $max_depth;
+}
+
+# return 1 if the pixel at (x,y) mm is black, 0 otherwise
+sub is_black {
+    my ($self, $x, $y) = @_;
+
+    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
+
+    return ($brightness == 0);
 }
 
 # return the depth at (x,y) mm
