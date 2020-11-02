@@ -147,6 +147,15 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Only really applicable with a ball-nose end mill.
             Default: treat black (0,0,0) as a hard limit on cut depth
 
+        --normalise
+            Measure the minimum and maximum brightness in the heightmap and stretch all brightness so that the full range of cut depth is achieved.
+            Default: no normalisation
+
+        --normalise-ignore-black
+            When normalising, ignore black (i.e. stretch all brightnesses apart from black, but leave black alone).
+            Note that normalisation is applied before inversion, so if you need this with --invert, you might have to invert the image externally instead.
+            Default: don't ignore black
+
     Output options:
 
         --quiet

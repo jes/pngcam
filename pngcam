@@ -29,6 +29,8 @@ my $x_flip;
 my $y_flip;
 my $invert;
 my $deep_black;
+my $normalise;
+my $normalise_ignore_black;
 
 my $quiet;
 
@@ -55,6 +57,8 @@ GetOptions(
     'y-flip' => \$y_flip,
     'invert' => \$invert,
     'deep-black' => \$deep_black,
+    'normalise' => \$normalise,
+    'normalise-ignore-black' => \$normalise_ignore_black,
 
     'quiet' => \$quiet,
 
@@ -94,6 +98,8 @@ my $pngcam = Pngcam->new(
     y_flip => $y_flip,
     invert => $invert,
     deep_black => $deep_black,
+    normalise => $normalise,
+    normalise_ignore_black => $normalise_ignore_black,
 
     quiet => $quiet,
 
@@ -188,6 +194,15 @@ Heightmap options:
         Let the tool cut below the full depth into black (0,0,0) if this would allow better reproduction of the non-black parts of the heightmap.
         Only really applicable with a ball-nose end mill.
         Default: treat black (0,0,0) as a hard limit on cut depth
+
+    --normalise
+        Measure the minimum and maximum brightness in the heightmap and stretch all brightness so that the full range of cut depth is achieved.
+        Default: no normalisation
+
+    --normalise-ignore-black
+        When normalising, ignore black (i.e. stretch all brightnesses apart from black, but leave black alone).
+        Note that normalisation is applied before inversion, so if you need this with --invert, you might have to invert the image externally instead.
+        Default: don't ignore black
 
 Output options:
 

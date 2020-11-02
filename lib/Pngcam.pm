@@ -39,6 +39,10 @@ sub run {
         print STDERR "\n";
     }
 
+    if ($self->{normalise}) {
+        $self->scan_brightness;
+    }
+
     # setup defaults
     print "G21\n"; # units in mm
     print "G90\n"; # absolute coordinates
@@ -340,7 +344,29 @@ sub get_depth {
     return ($brightness - 255) * ($self->{depth} / 255);
 }
 
+# scan the heightmap and fill in $self->{min_bright} and $self->{max_bright}
+sub scan_brightness {
+    my ($self) = @_;
+
+    my $minbright = 256;
+    my $maxbright = -1;
+
+    for my $y (0 .. $self->{pxheight}-1) {
+        for my $x (0 .. $self->{pxwidth}-1) {
+            my $col = $self->{image}->getPixel($x, $y);
+            my ($r,$g,$b) = $self->{image}->rgb($col);
+            my $brightness = ($r+$g+$b)/3;
+            $minbright = $brightness if $brightness < $minbright;
+            $maxbright = $brightness if $brightness > $maxbright;
+        }
+    }
+
+    $self->{min_bright} = $minbright;
+    $self->{max_bright} = $maxbright;
+}
+
 # return pixel brightness at (x,y) pixels, 0..255
+# this also applies normalisation and inversion
 sub get_brightness {
     my ($self, $x, $y) = @_;
 
@@ -362,11 +388,18 @@ sub get_brightness {
 
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
+    my $brightness = ($r+$g+$b)/3;
+
+    if ($self->{normalise}) {
+        if (!$self->{normalise_ignore_black} || $brightness != 0) {
+            $brightness = ($brightness - $self->{min_bright}) * (255 / ($self->{max_bright} - $self->{min_bright}));
+        }
+    }
 
     if ($self->{invert}) {
-        return 255-($r+$g+$b)/3;
+        return 255-$brightness;
     } else {
-        return ($r+$g+$b)/3;
+        return $brightness;
     }
 }
 
