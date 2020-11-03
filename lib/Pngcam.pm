@@ -84,6 +84,8 @@ sub one_pass {
 
     my @path;
 
+    print STDERR "Generating path: 0%" if !$self->{quiet};
+
     # generate path to set Z position at each X/Y position encountered
     while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
         while ($x >= 0 && $y >= 0 && $x <= $self->{width} && $y <= $self->{height}) {
