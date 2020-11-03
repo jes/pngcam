@@ -144,12 +144,12 @@ sub one_pass {
                         z => $self->{rapid_clearance},
                         G => 'G0',
                     };
-                    if ($zheight + $self->{rapid_clearance} < $self->{rapid_clearance}) {
+                    if ($zheight + $self->{step_down} + $self->{rapid_clearance} < $self->{rapid_clearance}) {
                         # rapidly move down to $rapid_clearance above where the last cut depth was
                         push @extrapath, {
                             x => $p->{x},
                             y => $p->{y},
-                            z => $zheight + $self->{rapid_clearance},
+                            z => $zheight + $self->{step_down} + $self->{rapid_clearance},
                             G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
                         };
                     }
