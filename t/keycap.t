@@ -22,7 +22,7 @@ is(sha256file("t/data/keycap-bottom.png"), "f5c00ed12d9f0c2cd49f26f1b7aa5c65de28
 # added, in the interest of increasing test coverage; they're not a good way to make a
 # keycap
 
-system("PERL5LIB=lib ./pngcam --quiet --deep-black --rapid-clearance 1 --step-over 2 --width 27.03 --tool-shape ball --tool-diameter 4 --depth 10 --xy-feed-rate 200 --z-feed-rate 50 --step-down 1 --clearance 0.1 --route both t/data/keycap-top.png > t/data/keycap-top-rough.gcode.new 2>> t/data/stderr.new");
+system("PERL5LIB=lib ./pngcam --quiet --deep-black --rapid-clearance 1 --step-over 2 --step-forward 0.6 --width 27.03 --tool-shape ball --tool-diameter 4 --depth 10 --xy-feed-rate 200 --z-feed-rate 50 --step-down 1 --clearance 0.1 --route both t/data/keycap-top.png > t/data/keycap-top-rough.gcode.new 2>> t/data/stderr.new");
 check("keycap-top-rough");
 
 system("PERL5LIB=lib ./pngcam --quiet --deep-black --rapid-clearance 1 --step-over 0.6 --width 27.03 --tool-shape ball --tool-diameter 2 --depth 10 --xy-feed-rate 400 --z-feed-rate 100 --route both t/data/keycap-top.png > t/data/keycap-top-finish.gcode.new 2>> t/data/stderr.new");
