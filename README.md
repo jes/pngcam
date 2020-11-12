@@ -84,6 +84,11 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the distance to move the tool over per pass in mm.
             Default: 5
 
+        --step-forward MM
+            Set the distance to step forward for each point in the path. If the part contains features that are substantially smaller
+            than the step-over, then you can use --step-forward to make sure you don't cut through them.
+            Default: takes value from --step-over
+
         --xy-feed-rate MM/MIN
             Set the maximum feed rate in X/Y plane in mm/min.
             Default: 400

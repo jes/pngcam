@@ -23,6 +23,10 @@ sub new {
         $self->{height} = $self->{width} / $aspect_ratio;
     }
 
+    if (!defined $self->{step_forward}) {
+        $self->{step_forward} = $self->{step_over};
+    }
+
     $self->{x_px_mm} = $self->{pxwidth} / $self->{width};
     $self->{y_px_mm} = $self->{pxheight} / $self->{height};
 
@@ -79,16 +83,25 @@ sub one_pass {
 
     my ($x, $y, $z) = (0, 0, 0); # mm
 
-    my $xstep = ($direction eq 'h') ? $self->{step_over} : 0;
-    my $ystep = ($direction eq 'v') ? $self->{step_over} : 0;
+    my $xstep = ($direction eq 'h') ? $self->{step_forward} : 0;
+    my $ystep = ($direction eq 'v') ? $self->{step_forward} : 0;
 
     my @path;
 
     print STDERR "Generating path: 0%" if !$self->{quiet};
 
+    my ($xlimit,$ylimit);
+    if ($direction eq 'h') {
+        $xlimit = $self->{width}+$self->{step_forward};
+        $ylimit = $self->{height}+$self->{step_over};
+    } else {
+        $xlimit = $self->{width}+$self->{step_over};
+        $ylimit = $self->{height}+$self->{step_forward};
+    }
+
     # generate path to set Z position at each X/Y position encountered
-    while ($x >= 0 && $y >= 0 && $x < ($self->{width}+$self->{step_over}) && $y < ($self->{height}+$self->{step_over})) {
-        while ($x >= 0 && $y >= 0 && $x < ($self->{width}+$self->{step_over}) && $y < ($self->{height}+$self->{step_over})) {
+    while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
+        while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
             push @path, {
                 x => $x,
                 y => -$y, # note: negative
