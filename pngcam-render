@@ -78,7 +78,7 @@ Options:
         Default: STLFILE.png
 
     --quiet
-        Suppress output of dimensions and resolutions.
+        Suppress output of dimensions, resolutions, and progress.
 
 Pngcam-render is a program by James Stanley. You can email me at james\@incoherency.co.uk or read my blog at https://incoherency.co.uk/
 };

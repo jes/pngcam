@@ -80,10 +80,17 @@ sub run {
 
     # render each triangle
     # since we're drawing a heightmap, the image itself acts as the depth buffer
+    my $ntriangles = @{ $self->{triangles} };
+    my $done = 0;
     for my $t (@{ $self->{triangles} }) {
         my @vertices = @$t;
         $self->draw_triangle(map { $self->mm_to_px($_) } @vertices);
+
+        $done++;
+        my $pct = sprintf("%2d", 100 * $done / $ntriangles);
+        print STDERR "   \rDrawing triangles: $pct%" if !$self->{quiet};
     }
+    print STDERR "\nDrawing triangles: done.\n";
 }
 
 sub save {
