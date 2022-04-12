@@ -10,7 +10,7 @@ build/pngcam-render: build.header lib/Pngcam/Render.pm pngcam-render
 	cat $^ | sed 's/^use Pngcam/import Pngcam/' > build/pngcam-render
 	chmod +x build/pngcam-render
 
-install: build/pngcam
+install: build/pngcam build/pngcam-render
 	install -m 0755 build/pngcam /usr/bin/pngcam
 	install -m 0755 build/pngcam-render /usr/bin/pngcam-render
 
