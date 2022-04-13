@@ -12,15 +12,10 @@ Dependencies:
 
  - perl
  - GD
- - CAD::Format::STL (for `pngcam-render` only)
 
 You can install GD on Ubuntu with:
 
     $ sudo apt install libgd-perl
-
-I'd suggest installing CAD::Format::STL from CPAN using cpanminus:
-
-    $ sudo apt install cpanminus && sudo cpanm CAD::Format::STL
 
 To build the "semi-fat-packed" Perl scripts:
 
