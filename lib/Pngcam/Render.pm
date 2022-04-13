@@ -90,7 +90,7 @@ sub run {
         my $pct = sprintf("%2d", 100 * $done / $ntriangles);
         print STDERR "   \rDrawing triangles: $pct%" if !$self->{quiet};
     }
-    print STDERR "\nDrawing triangles: done.\n";
+    print STDERR "\nDrawing triangles: done.\n" if !$self->{quiet};
 }
 
 sub save {
