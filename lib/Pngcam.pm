@@ -275,7 +275,7 @@ sub one_pass {
             $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: can this happen?
         }
 
-        print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}, $p->{y}, $p->{z}, $feed_rate);
+        print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}+$self->{x_offset}, $p->{y}+$self->{y_offset}, $p->{z}+$self->{z_offset}, $feed_rate);
         $last = $p;
     }
 

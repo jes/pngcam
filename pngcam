@@ -22,6 +22,9 @@ my $roughing_only = 0;
 my $clearance = 0; # mm
 my $rapid_clearance = 5; # mm
 my $route = 'both';
+my $x_offset = 0; # mm
+my $y_offset = 0; # mm
+my $z_offset = 0; # mm
 
 my $width; # mm
 my $height; # mm
@@ -51,6 +54,9 @@ GetOptions(
     'clearance=f' => \$clearance,
     'rapid-clearance=f' => \$rapid_clearance,
     'route=s' => \$route,
+    'x-offset=f' => \$x_offset,
+    'y-offset=f' => \$y_offset,
+    'z-offset=f' => \$z_offset,
 
     'width=f' => \$width,
     'height=f' => \$height,
@@ -93,6 +99,9 @@ my $pngcam = Pngcam->new(
     clearance => $clearance,
     rapid_clearance => $rapid_clearance,
     route => $route,
+    x_offset => $x_offset,
+    y_offset => $y_offset,
+    z_offset => $z_offset,
 
     width => $width,
     height => $height,
@@ -174,6 +183,18 @@ Path generation options:
     --route horizontal|vertical|both
         Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.
         Default: both
+
+    --x-offset MM
+        Set the offset of X cordinates.
+        Default: 0
+
+    --y-offset MM
+        Set the offset of Y cordinates.
+        Default: 0
+
+    --z-offset MM
+        Set the offset of Z cordinates.
+        Default: 0
 
 Heightmap options:
 
