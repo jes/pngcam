@@ -5,7 +5,6 @@ use warnings;
 
 use CAD::Format::STL;
 use GD;
-use POSIX qw(ceil floor);
 
 sub new {
     my ($pkg, %opts) = @_;
@@ -182,7 +181,7 @@ sub iterate_line {
     my ($self, $p1, $p2, $cb) = @_;
 
     # visit the first point
-    $cb->(map { floor($_) } @$p1);
+    $cb->(map { int($_) } @$p1);
 
     my $dx = $p2->[0] - $p1->[0];
     my $dy = $p2->[1] - $p1->[1];
@@ -200,11 +199,11 @@ sub iterate_line {
     my ($x,$y,$z) = @$p1;
 
     # visit each point on the line, stepping 1px at a time along a diagonal
-    for (1..floor($length)) {
+    for (1..int($length)) {
         $x += $stepx;
         $y += $stepy;
         $z += $stepz;
-        $cb->(floor($x), floor($y), floor($z));
+        $cb->(int($x), int($y), int($z));
     }
 }
 
