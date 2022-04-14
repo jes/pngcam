@@ -119,6 +119,18 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set whether the tool will move in horizontal lines, vertical lines, or first horizontal followed by vertical.
             Default: both
 
+        --x-offset MM
+            Set the offset of X cordinates.
+            Default: 0
+
+        --y-offset MM
+            Set the offset of Y cordinates.
+            Default: 0
+
+        --z-offset MM
+            Set the offset of Z cordinates.
+            Default: 0
+
     Heightmap options:
 
         --width MM
@@ -155,6 +167,10 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             When normalising, ignore black (i.e. stretch all brightnesses apart from black, but leave black alone).
             Note that normalisation is applied before inversion, so if you need this with --invert, you might have to invert the image externally instead.
             Default: don't ignore black
+
+        --imperial
+            All units are inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.
+            Default: not imperial.
 
     Output options:
 
@@ -195,7 +211,7 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Default: STLFILE.png
 
         --quiet
-            Suppress output of dimensions and resolutions.
+            Suppress output of dimensions, resolutions, and progress.
 
 ## Tests
 
