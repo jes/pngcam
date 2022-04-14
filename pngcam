@@ -35,6 +35,7 @@ my $invert;
 my $deep_black;
 my $normalise;
 my $normalise_ignore_black;
+my $imperial;
 
 my $quiet;
 
@@ -67,6 +68,7 @@ GetOptions(
     'deep-black' => \$deep_black,
     'normalise' => \$normalise,
     'normalise-ignore-black' => \$normalise_ignore_black,
+    'imperial' => \$imperial,
 
     'quiet' => \$quiet,
 
@@ -112,6 +114,7 @@ my $pngcam = Pngcam->new(
     deep_black => $deep_black,
     normalise => $normalise,
     normalise_ignore_black => $normalise_ignore_black,
+    imperial => $imperial,
 
     quiet => $quiet,
 
@@ -232,6 +235,10 @@ Heightmap options:
         When normalising, ignore black (i.e. stretch all brightnesses apart from black, but leave black alone).
         Note that normalisation is applied before inversion, so if you need this with --invert, you might have to invert the image externally instead.
         Default: don't ignore black
+
+    --imperial
+        All units are inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.
+        Default: not imperial.
 
 Output options:
 

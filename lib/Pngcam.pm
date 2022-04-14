@@ -37,9 +37,10 @@ sub run {
     my ($self) = @_;
 
     if (!$self->{quiet}) {
-        print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
-        print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
-        print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+        my $unit = $self->{imperial} ? 'inches' : 'mm';
+        print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} $unit work piece.\n";
+        print STDERR "X resolution is $self->{x_px_mm} px/$unit. Y resolution is $self->{y_px_mm} px/$unit.\n";
+        print STDERR "Step-over is $self->{step_over} $unit = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
         print STDERR "\n";
     }
 
@@ -48,7 +49,7 @@ sub run {
     }
 
     # setup defaults
-    print "G21\n"; # units in mm
+    print $self->{imperial} ? "G20\n" : "G21\n"; # units in inches or mm
     print "G90\n"; # absolute coordinates
     print "G54\n"; # work coordinate system
 
