@@ -73,8 +73,8 @@ GetOptions(
     'normalise-ignore-black' => \$normalise_ignore_black,
     'imperial' => \$imperial,
 
-    'max-vel' => \$maxvel,
-    'max-accel' => \$maxaccel,
+    'max-vel=f' => \$maxvel,
+    'max-accel=f' => \$maxaccel,
 
     'quiet' => \$quiet,
 
