@@ -243,6 +243,7 @@ sub one_pass {
         y => 0,
         z => 0,
     };
+    my $cycletime = 100;
     for my $p (@path) {
         # calculate the maximum feed rate that will not cause movement in either the XY plane or the Z axis to exceed their configured feed rates
         my $dx = $p->{x} - $last->{x};
@@ -274,6 +275,8 @@ sub one_pass {
             $feed_rate = $self->{xy_feedrate} if $feed_rate > $self->{xy_feedrate}; # XXX: can this happen?
         }
 
+        $cycletime += $self->movetime($last->{x},$last->{y},$last->{z}, $p->{x},$p->{y},$p->{z}, $feed_rate);
+
         print sprintf("$p->{G} X%.4f Y%.4f Z%.4f F%.1f\n", $p->{x}+$self->{x_offset}, $p->{y}+$self->{y_offset}, $p->{z}+$self->{z_offset}, $feed_rate);
         $last = $p;
     }
@@ -282,6 +285,8 @@ sub one_pass {
     print "G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n";
 
     print STDERR "\nDone.\n" if !$self->{quiet};
+
+    print STDERR "Cycle time estimate: $cycletime secs\n";
 }
 
 # return 1 if the 2 points are orthogonal and 1 stepover apart
@@ -415,6 +420,23 @@ sub get_brightness {
     } else {
         return $brightness;
     }
+}
+
+# calculate time to move from ($x1,$y1,$z1) to ($x2,$y2,$z2) at $feedrate mm/min, in seconds
+sub movetime {
+    my ($self, $x1,$y1,$z1, $x2,$y2,$z2, $feedrate) = @_;
+
+    # TODO: take into account max. acceleration
+
+    $feedrate = $self->{maxvel} if !$feedrate || $feedrate > $self->{maxvel};
+
+    my $dx = abs($x2-$x1);
+    my $dy = abs($y2-$y1);
+    my $dz = abs($z2-$z1);
+    my $dist = sqrt($dx*$dx + $dy*$dy + $dz*$dz);
+    my $mins = $dist / $feedrate;
+    my $secs = $mins * 60;
+    return $secs;
 }
 
 1;
