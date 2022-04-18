@@ -37,6 +37,8 @@ my $normalise;
 my $normalise_ignore_black;
 my $imperial;
 my $rgb;
+my $read_stock;
+my $write_stock;
 
 my $maxvel = 4000;
 my $maxaccel = 50;
@@ -74,6 +76,8 @@ GetOptions(
     'normalise-ignore-black' => \$normalise_ignore_black,
     'imperial' => \$imperial,
     'rgb' => \$rgb,
+    'read-stock=s' => \$read_stock,
+    'write-stock=s' => \$write_stock,
 
     'max-vel=f' => \$maxvel,
     'max-accel=f' => \$maxaccel,
@@ -124,6 +128,8 @@ my $pngcam = Pngcam->new(
     normalise_ignore_black => $normalise_ignore_black,
     imperial => $imperial,
     rgb => $rgb,
+    read_stock => $read_stock,
+    write_stock => $write_stock,
 
     maxvel => $maxvel,
     maxaccel => $maxaccel,
@@ -255,6 +261,14 @@ Heightmap options:
     --rgb
         Use R,G,B channels independently to get 24 bits of height data instead of 8.
         Default: greyscale
+
+    --read-stock PNGFILE
+        Read stock heightmap from PNGFILE, to save cutting air in roughing passes.
+        Default: none
+
+    --write-stock PNGFILE
+        Write output heightmap to PNGFILE, to use with --read-stock.
+        Default: none
 
 Cycle time options:
 
