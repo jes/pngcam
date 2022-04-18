@@ -36,6 +36,7 @@ my $deep_black;
 my $normalise;
 my $normalise_ignore_black;
 my $imperial;
+my $rgb;
 
 my $maxvel = 4000;
 my $maxaccel = 50;
@@ -72,6 +73,7 @@ GetOptions(
     'normalise' => \$normalise,
     'normalise-ignore-black' => \$normalise_ignore_black,
     'imperial' => \$imperial,
+    'rgb' => \$rgb,
 
     'max-vel=f' => \$maxvel,
     'max-accel=f' => \$maxaccel,
@@ -121,6 +123,7 @@ my $pngcam = Pngcam->new(
     normalise => $normalise,
     normalise_ignore_black => $normalise_ignore_black,
     imperial => $imperial,
+    rgb => $rgb,
 
     maxvel => $maxvel,
     maxaccel => $maxaccel,
@@ -248,6 +251,10 @@ Heightmap options:
     --imperial
         All units are inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.
         Default: not imperial.
+
+    --rgb
+        Use R,G,B channels independently to get 24 bits of height data instead of 8.
+        Default: greyscale
 
 Cycle time options:
 

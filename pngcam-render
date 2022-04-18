@@ -11,6 +11,7 @@ my $height;
 my $border = 32; # px
 my $bottom;
 my $png;
+my $rgb;
 
 my $quiet;
 
@@ -20,6 +21,7 @@ GetOptions(
     'height=f' => \$height,
     'bottom' => \$bottom,
     'png=s' => \$png,
+    'rgb' => \$rgb,
 
     'quiet' => \$quiet,
 
@@ -40,6 +42,7 @@ my $render = Pngcam::Render->new(
     width => $width,
     height => $height,
     bottom => $bottom,
+    rgb => $rgb,
 
     quiet => $quiet,
 );
@@ -76,6 +79,10 @@ Options:
     --png PNGFILE
         Set the name of the output file. If none is give, this will just be the STL file with ".png" appended.
         Default: STLFILE.png
+
+    --rgb
+        Use R,G,B channels independently to get 24 bits of height data instead of 8.
+        Default: greyscale
 
     --quiet
         Suppress output of dimensions, resolutions, and progress.

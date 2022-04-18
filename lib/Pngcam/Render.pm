@@ -54,7 +54,11 @@ sub new {
     # calculate pixels per mm
     $self->{x_px_mm} = $self->{width} / $self->{mmwidth};
     $self->{y_px_mm} = $self->{height} / $self->{mmheight};
-    $self->{z_px_mm} = 255 / ($self->{maxz} - $self->{minz}); # 0..255 isn't really "pixels" but meh
+    if ($self->{rgb}) {
+        $self->{z_px_mm} = 16777215 / ($self->{maxz} - $self->{minz}); # not really "pixels" but meh
+    } else {
+        $self->{z_px_mm} = 255 / ($self->{maxz} - $self->{minz}); # not really "pixels" but meh
+    }
 
     return $self;
 }
@@ -169,9 +173,21 @@ sub plot {
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
 
-    return if $r > $z; # do nothing if existing brightness is brighter than what we're going to draw
+    my $h = $self->{rgb} ? 65536*$r+256*$g+$b : $r;
 
-    my $newcol = $self->{image}->colorAllocate($z, $z, $z);
+    return if $h > $z; # do nothing if existing brightness is brighter than what we're going to draw
+
+    if ($self->{rgb}) {
+        $r = int($z/65536);
+        $g = int($z/256)%256;
+        $b = $z%256;
+    } else {
+        $r = $z;
+        $g = $z;
+        $b = $z;
+    }
+
+    my $newcol = $self->{image}->colorAllocate($r, $g, $b);
     $self->{image}->setPixel($x, $y, $newcol);
 }
 

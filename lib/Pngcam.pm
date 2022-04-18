@@ -30,6 +30,8 @@ sub new {
     $self->{x_px_mm} = $self->{pxwidth} / $self->{width};
     $self->{y_px_mm} = $self->{pxheight} / $self->{height};
 
+    $self->{max_colour} = $self->{rgb} ? 16777215 : 255;
+
     return $self;
 }
 
@@ -286,7 +288,7 @@ sub one_pass {
 
     print STDERR "\nDone.\n" if !$self->{quiet};
 
-    print STDERR "Cycle time estimate: $cycletime secs\n";
+    print STDERR "Cycle time estimate: $cycletime secs\n" if !$self->{quiet};
 }
 
 # return 1 if the 2 points are orthogonal and 1 stepover apart
@@ -367,14 +369,14 @@ sub get_depth {
 sub scan_brightness {
     my ($self) = @_;
 
-    my $minbright = 256;
+    my $minbright = 16777216;
     my $maxbright = -1;
 
     for my $y (0 .. $self->{pxheight}-1) {
         for my $x (0 .. $self->{pxwidth}-1) {
             my $col = $self->{image}->getPixel($x, $y);
             my ($r,$g,$b) = $self->{image}->rgb($col);
-            my $brightness = ($r+$g+$b)/3;
+            my $brightness = $self->{rgb} ? 65536*$r+256*$g+$b : ($r+$g+$b)/3;
             $minbright = $brightness if $brightness < $minbright;
             $maxbright = $brightness if $brightness > $maxbright;
         }
@@ -407,16 +409,16 @@ sub get_brightness {
 
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
-    my $brightness = ($r+$g+$b)/3;
+    my $brightness = $self->{rgb} ? $r*65536+$g*256+$b : ($r+$g+$b)/3;
 
     if ($self->{normalise}) {
         if (!$self->{normalise_ignore_black} || $brightness != 0) {
-            $brightness = ($brightness - $self->{min_bright}) * (255 / ($self->{max_bright} - $self->{min_bright}));
+            $brightness = ($brightness - $self->{min_bright}) * ($self->{max_colour} / ($self->{max_bright} - $self->{min_bright}));
         }
     }
 
     if ($self->{invert}) {
-        return 255-$brightness;
+        return $self->{max_colour}-$brightness;
     } else {
         return $brightness;
     }
