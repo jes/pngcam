@@ -503,8 +503,8 @@ sub plot_pixel {
     $z = -$self->{depth} if $z < -$self->{depth}; # heightmap can't represent deeper than the bottom
 
     # this is the inverse of $self->get_depth();
-    $x = int($x * $self->{x_px_mm});
-    $y = int(-$y * $self->{y_px_mm});
+    $x = int($x * $self->{x_px_mm} + 0.5);
+    $y = int(-$y * $self->{y_px_mm} + 0.5);
     my $brightness = int(($z * $self->{max_colour}) / $self->{depth} + $self->{max_colour});
 
     my $cur_col = $img->getPixel($x,$y);
