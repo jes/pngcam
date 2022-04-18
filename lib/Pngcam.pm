@@ -240,7 +240,7 @@ sub one_pass {
         y => 0,
         z => 0,
     };
-    my $cycletime = 100;
+    my $cycletime = 0;
     for my $p (@path) {
         # calculate the maximum feed rate that will not cause movement in either the XY plane or the Z axis to exceed their configured feed rates
         my $dx = $p->{x} - $last->{x};
