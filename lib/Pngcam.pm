@@ -470,17 +470,51 @@ sub plot_stock {
 sub plot_move {
     my ($self, $img, $p1, $p2) = @_;
 
-    # TODO: line movement from $p1 to $p2
+    my $dx = $p2->{x}-$p1->{x};
+    my $dy = $p2->{y}-$p1->{y};
+    my $dz = $p2->{z}-$p1->{z};
+
+    my $lenxyz = sqrt($dx*$dx + $dy*$dy + $dz*$dz);
+
+    if ($lenxyz == 0) {
+        $self->plot_toolpoint($img, $p1);
+        return;
+    }
+
+    $dx /= $lenxyz;
+    $dy /= $lenxyz;
+    $dz /= $lenxyz;
+
+    my %opts;
+    #$opts{yrange} = 0 if $dx == 0;
+    #$opts{xrange} = 0 if $dy == 0;
+
+    for (my $p = 0; $p <= $lenxyz; $p += 1/$self->{x_px_mm}) {
+        my $px = $p1->{x} + $dx*$p;
+        my $py = $p1->{y} + $dy*$p;
+        my $pz = $p1->{z} + $dz*$p;
+
+        $self->plot_toolpoint($img, {x=>$px, y=>$py, z=>$pz}, %opts);
+    }
+}
+
+
+# plot a single point on the toolpath
+sub plot_toolpoint {
+    my ($self, $img, $p, %opts) = @_;
 
     my $tool_radius = $self->{tool_diameter} / 2;
 
-    my $x = $p2->{x};
-    my $y = $p2->{y};
-    my $z = $p2->{z};
+    $opts{yrange} //= $tool_radius;
+    $opts{xrange} //= $tool_radius;
+
+    my $x = $p->{x};
+    my $y = $p->{y};
+    my $z = $p->{z};
 
     # plot the depth for every pixel within the tool radius of ($x,$y);
-    for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
-        for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
+    for (my $sy = -$opts{yrange}; $sy <= $opts{yrange}; $sy += (1 / $self->{y_px_mm})) {
+        for (my $sx = -$opts{xrange}; $sx <= $opts{xrange}; $sx += (1 / $self->{x_px_mm})) {
             my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
             next if $rx > $tool_radius;
 
