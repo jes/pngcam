@@ -184,7 +184,7 @@ sub one_pass {
                     z => $zheight,
                     G => 'G1',
                 };
-                if ($self->{write_stock} && $self->{roughing_only} && @extrapath >= 2) {
+                if ($self->{write_stock} && $self->{roughing_only} && @extrapath >= 2 && ($p->{z} > $zheight-$self->{step_down} || $extrapath[$#extrapath-1]->{z} > $zheight-$self->{step_down})) {
                     $self->plot_move($extrapath[$#extrapath-1], $extrapath[$#extrapath]);
                 }
                 $last = $extrapath[$#extrapath];
