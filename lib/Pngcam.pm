@@ -452,15 +452,12 @@ sub movetime {
 sub plot_stock {
     my ($self, @path) = @_;
 
-    print "PLOT STOCK\n";
-
     my ($x,$y,$z) = 0;
 
     my $img = $self->{write_stock_image};
 
     my $last = shift @path;
     for my $p (@path) {
-        print "PLOT $p->{x}, $p->{y}, $p->{z}\n";
         $self->plot_move($img, $last, $p);
         $last = $p;
     }
@@ -553,7 +550,6 @@ sub plot_pixel {
         my $b = $brightness%256;
         $col = $img->colorAllocate($r, $g, $b);
     } else {
-        print "plot $brightness at ($x,$y)\n";
         $col = $img->colorAllocate($brightness, $brightness, $brightness);
     }
 
