@@ -481,6 +481,13 @@ sub plot_move {
         return;
     }
 
+    if ($dx == 0 && $dy == 0) {
+        # if it's a vertical move, only plot the lower point, and only if that was
+        # the destination point (the start should have already been plotted)
+        $self->plot_toolpoint($img, $p2) if $p2->{z} < $p1->{z};
+        return;
+    }
+
     $dx /= $lenxyz;
     $dy /= $lenxyz;
     $dz /= $lenxyz;
