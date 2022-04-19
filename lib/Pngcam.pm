@@ -409,15 +409,15 @@ sub scan_brightness {
 sub get_brightness {
     my ($self, $x, $y, %opts) = @_;
 
-    $x = floor($x);
-    $y = floor($y);
-
-    $x = $self->{pxwidth}-1-$x if $self->{x_flip};
-    $y = $self->{pxheight}-1-$y if $self->{y_flip};
-
     if ($x < 0 || $y < 0 || $x >= $self->{pxwidth} || $y >= $self->{pxheight}) {
         return 0;
     }
+
+    $x = int($x);
+    $y = int($y);
+
+    $x = $self->{pxwidth}-1-$x if $self->{x_flip};
+    $y = $self->{pxheight}-1-$y if $self->{y_flip};
 
     # TODO: interpolate pixels at:
     # floor(x),floor(y)
@@ -533,8 +533,8 @@ sub plot_pixel {
     $z = -$self->{depth} if $z < -$self->{depth}; # heightmap can't represent deeper than the bottom
 
     # this is the inverse of $self->get_depth();
-    $x = floor($x * $self->{x_px_mm});
-    $y = floor(-$y * $self->{y_px_mm});
+    $x = int($x * $self->{x_px_mm});
+    $y = int(-$y * $self->{y_px_mm});
     my $brightness = int(($z * $self->{max_colour}) / $self->{depth} + $self->{max_colour});
     $brightness = $self->{max_colour}-$brightness if $self->{invert};
 
