@@ -109,7 +109,6 @@ sub one_pass {
     }
 
     # generate path to set Z position at each X/Y position encountered
-    my $last = { x=>0, y=>0, z=>0 };
     while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
         while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
             my $p = {
@@ -120,10 +119,9 @@ sub one_pass {
             };
             push @path, $p;
 
-            #if ($self->{write_stock} && !$self->{roughing_only}) {
-            #    $self->plot_move($last, $p) if $last;
-            #    $last = $p;
-            #}
+            if ($self->{write_stock} && !$self->{roughing_only} && @path >= 2) {
+                $self->plot_move($path[$#path-1], $p);
+            }
 
             $x += $xstep; $y += $ystep;
         }
@@ -150,7 +148,7 @@ sub one_pass {
 
     # postprocess path to limit maximum stepdown
     my @extrapath;
-    $last = { x=>0, y=>0, z=>0 };
+    my $last = { x=>0, y=>0, z=>0 };
     my $deepest = -$self->{depth} - ($self->{deep_black} ? ($self->{tool_diameter}/2) : 0);
     for (my $zheight = -$self->{step_down}; $zheight > $deepest; $zheight -= $self->{step_down}) {
         my $cutting = 0;
@@ -186,6 +184,9 @@ sub one_pass {
                     z => $zheight,
                     G => 'G1',
                 };
+                if ($self->{write_stock} && $self->{roughing_only} && @extrapath >= 2) {
+                    $self->plot_move($extrapath[$#extrapath-1], $extrapath[$#extrapath]);
+                }
                 $last = $extrapath[$#extrapath];
                 $cutting = 1;
             } else {
@@ -210,10 +211,8 @@ sub one_pass {
     }
     if ($self->{roughing_only}) {
         @path = @extrapath;
-        $self->plot_stock(@extrapath) if $self->{write_stock};
     } else {
         @path = (@extrapath, @path);
-        $self->plot_stock(@path) if $self->{write_stock};
     }
 
     # postprocess path to combine straight lines into a single larger run
@@ -452,24 +451,11 @@ sub movetime {
     return $secs;
 }
 
-# plot the heightmap of the stock after @path has been cut
-sub plot_stock {
-    my ($self, @path) = @_;
-
-    my ($x,$y,$z) = 0;
-
-    my $img = $self->{write_stock_image};
-
-    my $last = shift @path;
-    for my $p (@path) {
-        $self->plot_move($img, $last, $p);
-        $last = $p;
-    }
-}
-
 # plot a single move
 sub plot_move {
-    my ($self, $img, $p1, $p2) = @_;
+    my ($self, $p1, $p2) = @_;
+
+    my $img = $self->{write_stock_image};
 
     my $dx = $p2->{x}-$p1->{x};
     my $dy = $p2->{y}-$p1->{y};
