@@ -109,14 +109,22 @@ sub one_pass {
     }
 
     # generate path to set Z position at each X/Y position encountered
+    my $last = { x=>0, y=>0, z=>0 };
     while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
         while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
-            push @path, {
+            my $p = {
                 x => $x,
                 y => -$y, # note: negative
                 z => $self->cut_depth($x, $y),
                 G => 'G1',
             };
+            push @path, $p;
+
+            #if ($self->{write_stock} && !$self->{roughing_only}) {
+            #    $self->plot_move($last, $p) if $last;
+            #    $last = $p;
+            #}
+
             $x += $xstep; $y += $ystep;
         }
 
@@ -142,11 +150,7 @@ sub one_pass {
 
     # postprocess path to limit maximum stepdown
     my @extrapath;
-    my $last = {
-        x => 0,
-        y => 0,
-        z => 0,
-    };
+    $last = { x=>0, y=>0, z=>0 };
     my $deepest = -$self->{depth} - ($self->{deep_black} ? ($self->{tool_diameter}/2) : 0);
     for (my $zheight = -$self->{step_down}; $zheight > $deepest; $zheight -= $self->{step_down}) {
         my $cutting = 0;
@@ -482,16 +486,15 @@ sub plot_move {
     $dy /= $lenxyz;
     $dz /= $lenxyz;
 
-    my %opts;
-    #$opts{yrange} = 0 if $dx == 0;
-    #$opts{xrange} = 0 if $dy == 0;
+    my $step = min(1/$self->{x_px_mm}, 1/$self->{y_px_mm});
 
-    for (my $p = 0; $p <= $lenxyz; $p += 1/$self->{x_px_mm}) {
+    # plot interpolated path
+    for (my $p = 0; $p <= $lenxyz; $p += $step) {
         my $px = $p1->{x} + $dx*$p;
         my $py = $p1->{y} + $dy*$p;
         my $pz = $p1->{z} + $dz*$p;
 
-        $self->plot_toolpoint($img, {x=>$px, y=>$py, z=>$pz}, %opts);
+        $self->plot_toolpoint($img, {x=>$px, y=>$py, z=>$pz});
     }
 }
 
@@ -502,16 +505,13 @@ sub plot_toolpoint {
 
     my $tool_radius = $self->{tool_diameter} / 2;
 
-    $opts{yrange} //= $tool_radius;
-    $opts{xrange} //= $tool_radius;
-
     my $x = $p->{x};
     my $y = $p->{y};
     my $z = $p->{z};
 
     # plot the depth for every pixel within the tool radius of ($x,$y);
-    for (my $sy = -$opts{yrange}; $sy <= $opts{yrange}; $sy += (1 / $self->{y_px_mm})) {
-        for (my $sx = -$opts{xrange}; $sx <= $opts{xrange}; $sx += (1 / $self->{x_px_mm})) {
+    for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
+        for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
             my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
             next if $rx > $tool_radius;
 
