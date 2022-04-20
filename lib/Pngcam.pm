@@ -3,6 +3,7 @@ package Pngcam;
 use strict;
 use warnings;
 
+use FindBin;
 use GD;
 use List::Util qw(min max);
 use POSIX qw(floor);
@@ -36,6 +37,9 @@ sub new {
         # clear to white
         my $white = $self->{image}->colorAllocate(255,255,255);
         $self->{write_stock_image}->filledRectangle(0, 0, $self->{pxwidth}, $self->{pxheight}, $white);
+
+        # spawn plotter
+        $self->spawn_plotter;
     }
 
     return $self;
@@ -81,7 +85,7 @@ sub run {
     print "M5\n";
 
     # save stock heightmap
-    $self->{write_stock_image}->_file($self->{write_stock}) if $self->{write_stock};
+    $self->draw_plotter if $self->{write_stock};
 }
 
 # direction = 'h' or 'v'
@@ -507,41 +511,68 @@ sub plot_move {
 
 # plot a single point on the toolpath
 sub plot_toolpoint {
-    my ($self, $img, $p, %opts) = @_;
+    my ($self, $img, $p) = @_;
 
-    my $tool_radius = $self->{tool_diameter} / 2;
-
-    my $x = $p->{x};
-    my $y = $p->{y};
-    my $z = $p->{z};
-
-    # plot the depth for every pixel within the tool radius of ($x,$y);
-    for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
-        for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
-            my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
-            next if $rx > $tool_radius;
-
-            my $zoffset = 0;
-            if ($self->{tool_shape} eq 'ball') {
-                # ball end mill: spherical shape
-                $zoffset = $tool_radius - sqrt($tool_radius*$tool_radius - $rx*$rx);
-            }
-
-            $self->plot_pixel($img, $x+$sx, $y+$sy, $z+$zoffset);
-        }
-    }
+    my $fh = $self->{plotter_write};
+    print $fh pack("fff", $p->{x}, -$p->{y}, $p->{z});
 }
 
-# plot a single pixel in the heightmap
+sub spawn_plotter {
+    my ($self) = @_;
+
+    pipe(my $reader1, my $writer1) or die "can't pipe: $!";
+    pipe(my $reader2, my $writer2) or die "can't pipe: $!";
+
+    my $childpid = fork() // die "can't fork: $!";
+    if ($childpid == 0) {
+        # child:
+        close $writer1;
+        close $reader2;
+
+        open(STDIN, "<&=" . fileno($reader1)) or die "child can't reopen stdin: $!";
+        open(STDOUT, ">&=" . fileno($writer2)) or die "child can't reopen stdout: $!";
+
+        my $plotter = "$FindBin::Bin/pngcam-plotter";
+        exec($plotter, $self->{width}, $self->{height}, $self->{depth}, $self->{pxwidth}, $self->{pxheight}, $self->{tool_diameter}, $self->{tool_shape});
+
+        die "return from exec: $!";
+    }
+
+    # back in parent:
+    close $reader1;
+    close $writer2;
+
+    $self->{plotter_write} = $writer1;
+    $self->{plotter_read} = $reader2;
+}
+
+sub draw_plotter {
+    my ($self) = @_;
+
+    close($self->{plotter_write});
+
+    for (my $y = 0; $y < $self->{pxheight}; $y++) {
+        for (my $x = 0; $x < $self->{pxwidth}; $x++) {
+            die "premature eof from plotter" if read($self->{plotter_read}, my $z, 4) != 4;
+            $z = unpack('f', $z);
+            die "undef from unpack" if !defined $z;
+            $self->plot_pixel($x, $y, $z);
+        }
+    }
+
+    $self->{write_stock_image}->_file($self->{write_stock});
+}
+
+# plot a single pixel in the heightmap at (x,y) pixels and z mm depth
 sub plot_pixel {
-    my ($self, $img, $x, $y, $z) = @_;
+    my ($self, $x, $y, $z) = @_;
+
+    my $img = $self->{write_stock_image};
 
     return if $z > 0; # non-cut moves do nothing to the stock
     $z = -$self->{depth} if $z < -$self->{depth}; # heightmap can't represent deeper than the bottom
 
     # this is the inverse of $self->get_depth();
-    $x = int($x * $self->{x_px_mm});
-    $y = int(-$y * $self->{y_px_mm});
     my $brightness = int(($z * $self->{max_colour}) / $self->{depth} + $self->{max_colour});
     $brightness = $self->{max_colour}-$brightness if $self->{invert};
 

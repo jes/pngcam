@@ -29,6 +29,8 @@ If you want to run it without building, then you can use something like:
 
     $ PERL5LIB=lib ./pngcam [...]
 
+If you want to use `--write-stock` then you'll need `pngcam-plotter` which is built by the `Makefile`.
+
 ## Usage
 
 You'll need to represent your part in a heightmap in a PNG file.
