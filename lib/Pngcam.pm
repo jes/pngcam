@@ -309,7 +309,7 @@ sub one_pass {
     }
 
     # pick up the tool at the end of the path
-    print "G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n";
+    print "G1 Z" . ($self->{rapid_clearance}+$self->{z_offset}) . " F$self->{rapid_feedrate}\n";
 
     print STDERR "\nDone.\n" if !$self->{quiet};
 
