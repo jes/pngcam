@@ -98,8 +98,6 @@ sub one_pass {
     print "G91 G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
     print "G90 G0 X$self->{x_offset} Y$self->{y_offset} F$self->{rapid_feedrate}\n"; # absolute coordinates, move to start point
 
-    my ($x, $y, $z) = (0, 0, 0); # mm
-
     my $xstep = ($direction eq 'h') ? $self->{step_forward} : 0;
     my $ystep = ($direction eq 'v') ? $self->{step_forward} : 0;
 
@@ -116,9 +114,17 @@ sub one_pass {
         $ylimit = $self->{height}+$self->{step_forward};
     }
 
+    my $extralimit = $self->{beyond_edges} ? $self->{tool_diameter}/2 : 0;
+    my $zero  =0;
+    $zero -= $extralimit;
+    $xlimit += $extralimit;
+    $ylimit += $extralimit;
+
+    my ($x, $y, $z) = ($zero, $zero, $zero); # mm
+
     # generate path to set Z position at each X/Y position encountered
-    while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
-        while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
+    while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
+        while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
             my $p = {
                 x => $x,
                 y => -$y, # note: negative
