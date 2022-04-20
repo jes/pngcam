@@ -6,7 +6,7 @@ use warnings;
 use FindBin;
 use GD;
 use List::Util qw(min max);
-use POSIX qw(floor);
+use Math::Trig;
 
 sub new {
     my ($pkg, %opts) = @_;
@@ -262,6 +262,9 @@ sub one_pass {
             $i++;
         }
     }
+
+    # postprocess path to ramp plunges
+    @path = $self->ramp_entry(@path) if $self->{ramp_entry};
 
     print STDERR "\nWriting output..." if !$self->{quiet};
 
@@ -601,6 +604,88 @@ sub plot_pixel {
     }
 
     $img->setPixel($x, $y, $col);
+}
+
+# apply ramp entry to @path wherever possible, return the updated path
+sub ramp_entry {
+    my ($self, @path) = @_;
+
+    my $pi = 3.14159265;
+    my $max_plunge_angle = 30 * ($pi/180); # radians from horizontal
+    my $min_ramp_distance = $self->{tool_diameter};
+
+    my @outpath;
+
+    for (my $i = 1; $i < $#path; $i++) {
+        my $last = $path[$i-1];
+        my $p = $path[$i];
+        my $next = $path[$i+1];
+
+        if ($p->{G} =~ /G0/) { # don't ramp on rapids
+            push @outpath, $p;
+            next;
+        }
+
+        my $dxlast = $p->{x} - $last->{x};
+        my $dylast = $p->{y} - $last->{y};
+        my $dzlast = $p->{z} - $last->{z};
+
+        my $dxylast = sqrt($dxlast*$dxlast + $dylast*$dylast);
+
+        my $plunge_angle = atan2(-$dzlast, $dxylast);
+        if ($plunge_angle < $max_plunge_angle) { # already within allowable range
+            push @outpath, $p;
+            next;
+        }
+
+        my $dxnext = $next->{x} - $p->{x};
+        my $dynext = $next->{y} - $p->{y};
+        my $dznext = $next->{z} - $p->{z};
+
+        my $dxynext = sqrt($dxnext*$dxnext + $dynext*$dynext);
+
+        if ($dxynext < $min_ramp_distance) { # not enough room
+            push @outpath, $p;
+            next;
+        }
+
+        # we need to replace $p with 2 horizontal moves going downwards at
+        # $max_plunge_angle; the first move goes in the direction of
+        # $p -> $next, and the second one goes in the opposite direction, to
+        # land at $p
+        # if there is not enough horizontal distance between $p and $next
+        # then we just ramp in whatever distance there is and accept the
+        # overly-steep angle (should we instead do multiple ramps?)
+
+        # the height we need to go down is $dzlast, and we're starting from $last
+        # so the first leg goes down to z=$p->{z}-$dzlast/2 and the second leg
+        # ends up at $p, so we'll just leave $p unchanged for that
+
+        # how steep is the next leg of the toolpath?
+        my $available_ramp_angle = atan2($dznext, $dxynext);
+
+        # how steep would our ramp need to be to finish before passing the next point?
+        my $available_ramp_distance = $dxynext;
+        my $implied_available_ramp_angle = atan2(-$dzlast/2, $dxynext);
+
+        # use whichever limit forces the ramp angle to be steepest, so that we don't exceed any limit
+        my $ramp_angle = max($available_ramp_angle, $implied_available_ramp_angle, $max_plunge_angle);
+
+        my $ramp_dxy = -($dzlast/2) / tan($ramp_angle);
+        my $k = $ramp_dxy / $dxynext;
+        my $ramp_dx = $k * $dxnext;
+        my $ramp_dy = $k * $dynext;
+
+        my $leg1 = {%$p};
+
+        $leg1->{x} = $last->{x} + $ramp_dx;
+        $leg1->{y} = $last->{y} + $ramp_dy;
+        $leg1->{z} = $p->{z}-$dzlast/2;
+
+        push @outpath, $leg1, $p;
+    }
+
+    return @outpath;
 }
 
 1;
