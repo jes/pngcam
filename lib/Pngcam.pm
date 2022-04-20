@@ -113,6 +113,8 @@ sub one_pass {
         $xlimit = $self->{width}+$self->{step_over};
         $ylimit = $self->{height}+$self->{step_forward};
     }
+    $xlimit -= 1/ $self->{x_px_mm};
+    $ylimit -= 1/ $self->{x_px_mm};
 
     my $extralimit = $self->{beyond_edges} ? $self->{tool_diameter}/2 : 0;
     my $zero  =0;
@@ -125,10 +127,14 @@ sub one_pass {
     # generate path to set Z position at each X/Y position encountered
     while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
         while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
+            my $px = $x;
+            my $py = $y;
+            $px = $self->{width}+$extralimit if $px > $self->{width}+$extralimit;
+            $py = $self->{height}+$extralimit if $py > $self->{height}+$extralimit;
             my $p = {
-                x => $x,
-                y => -$y, # note: negative
-                z => $self->cut_depth($x, $y),
+                x => $px,
+                y => -$py, # note: negative
+                z => $self->cut_depth($px, $py),
                 G => 'G1',
             };
             push @path, $p;
@@ -265,6 +271,9 @@ sub one_pass {
 
     # postprocess path to ramp plunges
     @path = $self->ramp_entry(@path) if $self->{ramp_entry};
+
+    # postprocess path to omit top
+    @path = $self->omit_top(@path) if $self->{omit_top};
 
     print STDERR "\nWriting output..." if !$self->{quiet};
 
@@ -638,6 +647,8 @@ sub ramp_entry {
             next;
         }
 
+        # TODO: when the next-next move is in the same xy direction (but, e.g., different Z)
+        # then we can consider it as well to see if it provides clearance for a longer ramp
         my $dxnext = $next->{x} - $p->{x};
         my $dynext = $next->{y} - $p->{y};
         my $dznext = $next->{z} - $p->{z};
@@ -683,6 +694,69 @@ sub ramp_entry {
         $leg1->{z} = $p->{z}-$dzlast/2;
 
         push @outpath, $leg1, $p;
+    }
+
+    return @outpath;
+}
+
+# remove moves that are G1 at Z0, replace them with rapid moves between the actual cuts
+sub omit_top {
+    my ($self, @path) = @_;
+
+    my @outpath;
+
+    my $i = 0;
+    while ($i < @path) {
+        my $p = $path[$i];
+
+        # not a G1 at Z0? leave it alone
+        if ($p->{z} != 0 || $p->{G} ne 'G1') {
+            push @outpath, $p;
+            $i++;
+            next;
+        }
+
+        # TODO: when the total distance skipped over is small enough, don't
+        # bother skipping it, # as the Z hop just wastes time (i.e. where we
+        # would increase the cycle time estimate, leave the path alone)
+
+        # skip over the subsequent G1's at Z0
+        $i++ while $i < $#path && $path[$i+1]{z} == 0 && $path[$i+1]{G} eq 'G1';
+
+        my $p2 = $path[$i];
+
+        # now $p is the frst G1 Z0, and $p2 is the last; we want to leave
+        # $p in the path so that we arrive at Z0, but replace all the
+        # intermediate moves with a rapid up, across, down
+
+        # move to $p
+        push @outpath, $p;
+
+        # up
+        push @outpath, {
+            x => $p->{x},
+            y => $p->{y},
+            z => $self->{rapid_clearance},
+            G => 'G0',
+        };
+
+        # across
+        push @outpath, {
+            x => $p2->{x},
+            y => $p2->{y},
+            z => $self->{rapid_clearance},
+            G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
+        };
+
+        # down
+        push @outpath, {
+            x => $p2->{x},
+            y => $p2->{y},
+            z => 0,
+            G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
+        };
+
+        $i++;
     }
 
     return @outpath;

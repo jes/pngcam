@@ -133,6 +133,10 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Set the offset of Z cordinates.
             Default: 0
 
+        --ramp-entry
+            Add horizontal movements to plunge cuts where possible, to reduce cutting forces.
+            Default: plunge straight down
+
     Heightmap options:
 
         --width MM
@@ -161,6 +165,14 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
             Only really applicable with a ball-nose end mill.
             Default: treat black (0,0,0) as a hard limit on cut depth
 
+        --beyond-edges
+            Let the tool cut beyond the edges of the heightmap.
+            Default: don't
+
+        --omit-top
+            Don't bother cutting top surfaces that are at the upper limit of the heightmap.
+            Default: cut them
+
         --normalise
             Measure the minimum and maximum brightness in the heightmap and stretch all brightness so that the full range of cut depth is achieved.
             Default: no normalisation
@@ -173,6 +185,28 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
         --imperial
             All units are inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.
             Default: not imperial.
+
+        --rgb
+            Use R,G,B channels independently to get 24 bits of height data instead of 8.
+            Default: greyscale
+
+        --read-stock PNGFILE
+            Read stock heightmap from PNGFILE, to save cutting air in roughing passes.
+            Default: none
+
+        --write-stock PNGFILE
+            Write output heightmap to PNGFILE, to use with --read-stock.
+            Default: none
+
+    Cycle time options:
+
+        --max-vel MM/MIN
+            Max. velocity in mm/min for cycle time calculation.
+            Default: 4000.
+
+        --max-accel MM/SEC^2
+            Max. acceleration in mm/sec^2 for cycle time calculation.
+            Default: 50.
 
     Output options:
 
@@ -211,6 +245,10 @@ with Z=0 at the top surface of the part (i.e. at "white" in the heightmap).
         --png PNGFILE
             Set the name of the output file. If none is give, this will just be the STL file with ".png" appended.
             Default: STLFILE.png
+
+        --rgb
+            Use R,G,B channels independently to get 24 bits of height data instead of 8.
+            Default: greyscale
 
         --quiet
             Suppress output of dimensions, resolutions, and progress.
