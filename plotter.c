@@ -22,6 +22,7 @@
 float mmwidth, mmheight, mmdepth;
 int pxwidth, pxheight;
 float x_mm_px, y_mm_px;
+float toolradius_xpx, toolradius_ypx;
 float toolradius, toolradius_sqr;
 
 #define FLAT 0
@@ -43,10 +44,7 @@ void writefloat(float f) {
     fwrite(&f, sizeof(float), 1, stdout);
 }
 
-void plot_pixel(float x, float y, float z) {
-    int xpx = x / x_mm_px;
-    int ypx = y / y_mm_px;
-
+void plot_pixel(int xpx, int ypx, float z) {
     if (xpx < 0 || ypx < 0 || xpx >= pxwidth || ypx >= pxheight)
         return;
 
@@ -56,9 +54,13 @@ void plot_pixel(float x, float y, float z) {
 
 // plot the depth for every pixel within tool radius of (x,y)
 void plot_toolpoint(float x, float y, float z) {
-    for (float sy = -toolradius; sy <= toolradius; sy += y_mm_px) {
-        for (float sx = -toolradius; sx <= toolradius; sx += x_mm_px) {
-            float rx_sqr = sx*sx+sy*sy;
+    float xpx = x / x_mm_px;
+    float ypx = y / y_mm_px;
+    for (float sy = -toolradius_ypx; sy <= toolradius_ypx; sy += 1) {
+        for (float sx = -toolradius_xpx; sx <= toolradius_xpx; sx += 1) {
+            float sxmm = sx*x_mm_px;
+            float symm = sy*y_mm_px;
+            float rx_sqr = sxmm*sxmm+symm*symm;
             if (rx_sqr > toolradius_sqr)
                 continue;
 
@@ -66,7 +68,7 @@ void plot_toolpoint(float x, float y, float z) {
             if (toolshape == BALL)
                 zoffset = toolradius - sqrtf(toolradius_sqr - rx_sqr);
 
-            plot_pixel(x+sx, y+sy, z+zoffset);
+            plot_pixel(xpx+sx, ypx+sy, z+zoffset);
         }
     }
 }
@@ -99,6 +101,8 @@ int main(int argc, char **argv) {
     }
 
     toolradius = atof(argv[6])/2;
+    toolradius_xpx = toolradius / x_mm_px;
+    toolradius_ypx = toolradius / y_mm_px;
     toolradius_sqr = toolradius*toolradius;
     if (strcmp(argv[7], "ball") == 0)
         toolshape = BALL;
