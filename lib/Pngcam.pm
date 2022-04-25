@@ -712,7 +712,7 @@ sub omit_top {
         }
 
         # TODO: when the total distance skipped over is small enough, don't
-        # bother skipping it, # as the Z hop just wastes time (i.e. where we
+        # bother skipping it, as the Z hop just wastes time (i.e. where we
         # would increase the cycle time estimate, leave the path alone)
 
         # now $p is the frst G1 Z0, and $p2 will be the last; we want to leave
