@@ -692,7 +692,7 @@ sub ramp_entry {
     return @outpath;
 }
 
-# remove moves that are G1 at Z0, replace them with rapid moves between the actual cuts
+# remove moves that are G1 at Z>=0, replace them with rapid moves between the actual cuts
 sub omit_top {
     my ($self, @path) = @_;
 
@@ -704,8 +704,8 @@ sub omit_top {
     while ($i < @path) {
         my $p = $path[$i];
 
-        # not a G1 at Z0? leave it alone
-        if (abs($p->{z}) > $epsilon || $p->{G} ne 'G1') {
+        # not a G1 at Z>=0? leave it alone
+        if ($p->{z} < -$epsilon || $p->{G} ne 'G1') {
             push @outpath, $p;
             $i++;
             next;
@@ -724,7 +724,7 @@ sub omit_top {
         push @outpath, $p unless $i == 0;
 
         # skip over the subsequent G1's at Z0
-        $i++ while $i < $#path && abs($path[$i+1]{z}) < $epsilon && $path[$i+1]{G} eq 'G1';
+        $i++ while $i < $#path && $path[$i+1]{z} > -$epsilon && $path[$i+1]{G} eq 'G1';
         my $p2 = $path[$i];
 
         # up
