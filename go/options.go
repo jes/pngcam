@@ -28,19 +28,28 @@ type Options struct {
     direction Direction
 
     stepOver float64
-    stepForward float64
     stepDown float64
 
     tool Tool
 
     stockToLeave float64
 
+    roughingOnly bool
     omitTop bool
     rampEntry bool
     cutBelowBottom bool
     cutBeyondEdges bool
 
     imperial bool
+
+    xOffset float64
+    yOffset float64
+    zOffset float64
+
+    maxVel float64
+    maxAccel float64
+
+    quiet bool
 }
 
 func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
@@ -65,21 +74,5 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
     } else {
         // Z feed is limiting factor
         return math.Abs(totalDist/zDist) * opt.zFeed
-    }
-}
-
-func (opt Options) XStep() float64 {
-    if opt.direction == Horizontal {
-        return opt.stepForward
-    } else {
-        return opt.stepOver
-    }
-}
-
-func (opt Options) YStep() float64 {
-    if opt.direction == Horizontal {
-        return opt.stepOver
-    } else {
-        return opt.stepForward
     }
 }
