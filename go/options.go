@@ -4,11 +4,36 @@ import (
     "math"
 )
 
+type Direction int
+const (
+    Horizontal Direction = iota
+    Vertical
+)
+
 type Options struct {
     safeZ float64
     rapidFeed float64
     xyFeed float64
     zFeed float64
+
+    width float64
+    height float64
+    depth float64
+
+    direction Direction
+
+    stepOver float64
+    stepForward float64
+    stepDown float64
+
+    tool Tool
+
+    stockToLeave float64
+
+    omitTop bool
+    rampEntry bool
+    cutBelowBottom bool
+    cutBeyondEdges bool
 }
 
 func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
@@ -33,5 +58,21 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
     } else {
         // Z feed is limiting factor
         return math.Abs(totalDist/zDist) * opt.zFeed
+    }
+}
+
+func (opt Options) XStep() float64 {
+    if opt.direction == Horizontal {
+        return opt.stepForward
+    } else {
+        return opt.stepOver
+    }
+}
+
+func (opt Options) YStep() float64 {
+    if opt.direction == Horizontal {
+        return opt.stepOver
+    } else {
+        return opt.stepForward
     }
 }

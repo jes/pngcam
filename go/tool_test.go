@@ -11,6 +11,10 @@ func TestBall(t *testing.T) {
         t.Errorf("can't create ball tool: %v", err)
     }
 
+    if tool.Radius() != 5 {
+        t.Errorf("tool radius was %v, expected 5", tool.Radius())
+    }
+
     checkHeightAtRadius(t, tool, 0, 0)
     checkHeightAtRadius(t, tool, 5, 5)
     checkHeightAtRadius(t, tool, 1, 0.1010205)
@@ -20,6 +24,10 @@ func TestBall(t *testing.T) {
     tool, err = NewTool("flat", 10)
     if err != nil {
         t.Errorf("can't create flat tool: %v", err)
+    }
+
+    if tool.Radius() != 5 {
+        t.Errorf("tool radius was %v, expected 5", tool.Radius())
     }
 
     checkHeightAtRadius(t, tool, 0, 0)

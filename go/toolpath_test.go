@@ -4,7 +4,7 @@ import (
     "testing"
 )
 
-func TestToolpathSegment(t *testing.T) {
+func TestToolpaths(t *testing.T) {
     opt := Options{
         safeZ: 5,
         rapidFeed: 10000,

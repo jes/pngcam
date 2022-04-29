@@ -19,7 +19,7 @@ type Toolpath struct {
     segments []ToolpathSegment
 }
 
-func (seg ToolpathSegment) ToGcode(opt Options) string {
+func (seg *ToolpathSegment) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 
     // start at i=1 because we assume we're starting from point 0
@@ -31,7 +31,7 @@ func (seg ToolpathSegment) ToGcode(opt Options) string {
     return gcode.String()
 }
 
-func (tp Toolpath) ToGcode(opt Options) string {
+func (tp *Toolpath) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 
     // hop up to safe Z
