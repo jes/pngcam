@@ -45,8 +45,12 @@ func (tp *Toolpath) ToGcode(opt Options) string {
 
         // rapid down to safe Z above start height?
         if p0.z+opt.safeZ < opt.safeZ {
-            fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", p0.z+opt.safeZ, opt.rapidFeed);
+            fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", p0.z+opt.safeZ, opt.rapidFeed)
         }
+
+        // feed down to start height
+        // TODO: ramp entry
+        fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", p0.z, opt.zFeed)
 
         // move through the rest of the segment
         gcode.WriteString(tp.segments[i].ToGcode(opt))

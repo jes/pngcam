@@ -11,10 +11,15 @@ const (
 )
 
 type Options struct {
+    heightmapPath string
+    readStockPath string
+    writeStockPath string
+
     safeZ float64
     rapidFeed float64
     xyFeed float64
     zFeed float64
+    rpm float64
 
     width float64
     height float64
@@ -34,6 +39,8 @@ type Options struct {
     rampEntry bool
     cutBelowBottom bool
     cutBeyondEdges bool
+
+    imperial bool
 }
 
 func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {

@@ -46,15 +46,15 @@ func OpenHeightmapImage(path string, opt *Options) (*HeightmapImage, error) {
 func (hm *HeightmapImage) ToToolpointsMap() *ToolpointsMap {
     opt := hm.options
 
-    w := int(opt.width / opt.XStep())
-    h := int(opt.height / opt.YStep())
+    w := hm.img.Bounds().Max.X
+    h := hm.img.Bounds().Max.Y
 
     tpm := &ToolpointsMap{
         w: w,
         h: h,
         height: make([]float64, w*h),
-        x_MmPerPx: opt.XStep(),
-        y_MmPerPx: opt.YStep(),
+        x_MmPerPx: hm.x_MmPerPx,
+        y_MmPerPx: hm.y_MmPerPx,
         options: opt,
     }
 
