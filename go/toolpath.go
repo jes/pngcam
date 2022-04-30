@@ -104,6 +104,12 @@ func (tp *Toolpath) Append(seg ToolpathSegment) {
     tp.segments = append(tp.segments, seg)
 }
 
+func (tp *Toolpath) AppendToolpath(more *Toolpath) {
+    for i := 0; i < len(more.segments); i++ {
+        tp.Append(more.segments[i])
+    }
+}
+
 func (tp *Toolpath) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 

@@ -9,6 +9,7 @@ type Job struct {
     options *Options
     toolpoints *ToolpointsMap
     readStock *ToolpointsMap
+    writeStock *ToolpointsMap
     mainToolpath Toolpath
 }
 
@@ -24,11 +25,15 @@ func NewJob(opt *Options) (*Job, error) {
     j.toolpoints = hm.ToToolpointsMap()
 
     if opt.readStockPath != "" {
-        hm, err = OpenHeightmapImage(opt.readStockPath, opt)
+        readImg, err := OpenHeightmapImage(opt.readStockPath, opt)
         if err != nil {
             return nil, err
         }
-        j.readStock = hm.ToToolpointsMap()
+        j.readStock = readImg.ToToolpointsMap()
+    }
+
+    if opt.writeStockPath != "" {
+        j.writeStock = NewToolpointsMap(hm.img.Bounds().Max.X, hm.img.Bounds().Max.Y, opt, 0)
     }
 
     j.MakeToolpath()
@@ -86,11 +91,28 @@ func (j *Job) MakeToolpath() {
 }
 
 func (j *Job) Gcode() string {
-    if (j.options.roughingOnly) {
-        return j.Preamble() + j.Roughing() + j.Postamble()
-    } else {
-        return j.Preamble() + j.Roughing() + j.Finishing() + j.Postamble()
+    roughingPath := j.Roughing()
+    if j.writeStock != nil {
+        j.writeStock.PlotToolpath(roughingPath)
     }
+
+    gcode := ""
+
+    if (j.options.roughingOnly) {
+        gcode = j.Preamble() + roughingPath.ToGcode(*j.options) + j.Postamble()
+    } else {
+        finishingPath := j.Finishing()
+        if j.writeStock != nil {
+            j.writeStock.PlotToolpath(finishingPath)
+        }
+        gcode = j.Preamble() + roughingPath.ToGcode(*j.options) + finishingPath.ToGcode(*j.options) + j.Postamble()
+    }
+
+    if j.writeStock != nil {
+        j.writeStock.WritePNG(j.options.writeStockPath)
+    }
+
+    return gcode
 }
 
 func (j *Job) Preamble() string {
@@ -115,11 +137,11 @@ func (j *Job) Postamble() string {
     return "M5\nM2\n" // stop spindle, end program
 }
 
-func (j *Job) Finishing() string {
-    return j.mainToolpath.Simplified().ToGcode(*j.options)
+func (j *Job) Finishing() *Toolpath {
+    return j.mainToolpath.Simplified()
 }
 
-func (j *Job) Roughing() string {
+func (j *Job) Roughing() *Toolpath {
     opt := j.options
 
     deepest := -opt.depth
@@ -127,13 +149,13 @@ func (j *Job) Roughing() string {
         deepest -= opt.tool.Radius()
     }
 
-    gcode := ""
+    path := NewToolpath()
 
     for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
-        gcode += j.RoughingLevel(z).Simplified().ToGcode(*opt)
+        path.AppendToolpath(j.RoughingLevel(z).Simplified())
     }
 
-    return gcode
+    return &path
 }
 
 func (j *Job) RoughingLevel(z float64) *Toolpath {

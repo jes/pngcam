@@ -7,6 +7,8 @@ import (
     "os"
 )
 
+// TODO: shouldn't MmPerPx be in "options" instead of duplicated everywhere? Same for MmToPx and PxToMm?
+
 type HeightmapImage struct {
     img image.Image
     x_MmPerPx float64
@@ -50,19 +52,8 @@ func (hm *HeightmapImage) ToToolpointsMap() *ToolpointsMap {
     w := hm.img.Bounds().Max.X
     h := hm.img.Bounds().Max.Y
 
-    tpm := &ToolpointsMap{
-        w: w,
-        h: h,
-        hm: hm,
-        height: make([]float64, w*h),
-        x_MmPerPx: hm.x_MmPerPx,
-        y_MmPerPx: hm.y_MmPerPx,
-        options: opt,
-    }
-
-    for i := 0; i < w*h; i++ {
-        tpm.height[i] = math.NaN()
-    }
+    tpm := NewToolpointsMap(w,h, opt, math.NaN())
+    tpm.hm = hm
 
     return tpm
 }
@@ -114,6 +105,24 @@ func (hm *HeightmapImage) IsBottom(x, y float64) bool {
     return hm.GetDepth(x,y) == 0
 }
 
+func NewToolpointsMap(w,h int, options *Options, init float64) *ToolpointsMap {
+    tpm := ToolpointsMap{
+        w: w,
+        h: h,
+        hm: nil,
+        height: make([]float64, w*h),
+        x_MmPerPx: options.width / float64(w),
+        y_MmPerPx: options.height / float64(h),
+        options: options,
+    }
+
+    for i := 0; i < w*h; i++ {
+        tpm.height[i] = init
+    }
+
+    return &tpm
+}
+
 func (m *ToolpointsMap) SetMm(x, y, z float64) {
     px,py := m.MmToPx(x,y)
     m.SetPx(px, py, z)
@@ -131,7 +140,6 @@ func (m *ToolpointsMap) PxToMm(x, y int) (float64, float64) {
     return float64(x) * m.x_MmPerPx, float64(m.h-1-y) * m.y_MmPerPx
 }
 
-// XXX: can we do this without copy and paste using an interface?
 func (m *HeightmapImage) MmToPx(x, y float64) (int, int) {
     return int(x / m.x_MmPerPx), int(-y / m.y_MmPerPx) + m.img.Bounds().Max.Y-1
 }
@@ -151,7 +159,9 @@ func (m *ToolpointsMap) GetPx(x, y int) float64 {
         return math.Inf(-1)
     }
     if math.IsNaN(m.height[y*m.w + x]) {
-        m.height[y*m.w + x] = m.hm.CutDepth(m.PxToMm(x, y))
+        if m.hm != nil {
+            m.height[y*m.w + x] = m.hm.CutDepth(m.PxToMm(x, y))
+        }
     }
     return m.height[y*m.w + x]
 }
@@ -172,4 +182,68 @@ func (m *ToolpointsMap) WritePNG(path string) {
     out, _ := os.Create(path)
     png.Encode(out, img)
     out.Close()
+}
+
+func (m *ToolpointsMap) PlotPixel(x, y, z float64) {
+    curZ := m.GetMm(x, y)
+    if math.IsNaN(curZ) || z < curZ {
+        m.SetMm(x, y, z)
+    }
+}
+
+func (m *ToolpointsMap) PlotPoint(x, y, z float64) {
+    tool := m.options.tool
+
+    // pretend tool is 1px larger so that we don't leave tall spikes between rows
+    r := tool.Radius() + m.x_MmPerPx
+
+    for sy := -r; sy <= r; sy += m.y_MmPerPx {
+        for sx := -r; sx <= r; sx += m.x_MmPerPx {
+            r := math.Sqrt(sx*sx + sy*sy)
+            if r > tool.Radius() {
+                continue
+            }
+
+            zOffset := tool.HeightAtRadius(r)
+            m.PlotPixel(x+sx, y+sy, z+zOffset)
+        }
+    }
+}
+
+func (m *ToolpointsMap) PlotLine(x1,y1,z1, x2,y2,z2 float64) {
+    dx := x2-x1
+    dy := y2-y1
+    dz := z2-z1
+
+    xyDist := math.Sqrt(dx*dx + dy*dy)
+
+    xStep := dx / xyDist
+    yStep := dy / xyDist
+    zStep := dz / xyDist
+
+    // TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
+    for k := 0.0; k <= xyDist; k += m.x_MmPerPx {
+        m.PlotPoint(x1 + xStep*k, y1 + yStep*k, z1 + zStep*k)
+    }
+}
+
+func (m *ToolpointsMap) PlotToolpathSegment(seg *ToolpathSegment) {
+    if len(seg.points) == 0 {
+        return
+    }
+
+    if len(seg.points) == 1 {
+        m.PlotLine(seg.points[0].x, seg.points[0].y, seg.points[0].z, seg.points[0].x, seg.points[0].y, seg.points[0].z)
+        return
+    }
+
+    for i := 1; i < len(seg.points); i++ {
+        m.PlotLine(seg.points[i-1].x, seg.points[i-1].y, seg.points[i-1].z, seg.points[i].x, seg.points[i].y, seg.points[i].z)
+    }
+}
+
+func (m *ToolpointsMap) PlotToolpath(tp *Toolpath) {
+    for i := 0; i < len(tp.segments); i++ {
+        m.PlotToolpathSegment(&tp.segments[i])
+    }
 }
