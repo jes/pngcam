@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "math"
     "strings"
 )
 
@@ -31,6 +32,52 @@ func NewToolpath() Toolpath {
     }
 }
 
+func (seg *ToolpathSegment) Append(t Toolpoint) {
+    seg.points = append(seg.points, t)
+}
+
+func (seg *ToolpathSegment) Simplified() *ToolpathSegment {
+    newseg := NewToolpathSegment()
+
+    if len(seg.points) == 0 {
+        return &newseg
+    }
+
+    newseg.Append(seg.points[0])
+
+    if len(seg.points) == 1 {
+        return &newseg
+    }
+
+    epsilon := 0.00001
+
+    prev := seg.points[1]
+
+    for i := 2 ; i < len(seg.points); i++ {
+        first := newseg.points[len(newseg.points)-1]
+        cur := seg.points[i]
+
+        prev_xy := math.Atan2(prev.y-first.y, prev.x-first.x)
+        cur_xy := math.Atan2(cur.y-prev.y, cur.x-prev.x)
+        prev_xz := math.Atan2(prev.z-first.z, prev.x-first.x)
+        cur_xz := math.Atan2(cur.z-prev.z, cur.x-prev.x)
+        prev_yz := math.Atan2(prev.z-first.z, prev.y-first.y)
+        cur_yz := math.Atan2(cur.z-prev.z, cur.y-prev.y)
+
+        // if the route first->prev has the same angle as prev->cur, then first->prev->cur is
+        // a straight line, so we can remove prev and just go straight from first->cur
+
+        if math.Abs(cur_xy-prev_xy) > epsilon || math.Abs(cur_xz-prev_xz) > epsilon || math.Abs(cur_yz-prev_yz) > epsilon {
+            newseg.Append(prev)
+        }
+        prev = cur
+    }
+
+    newseg.Append(prev)
+
+    return &newseg
+}
+
 func (seg *ToolpathSegment) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 
@@ -41,6 +88,20 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
     }
 
     return gcode.String()
+}
+
+func (tp *Toolpath) Simplified() *Toolpath {
+    newtp := NewToolpath()
+
+    for i := 0; i < len(tp.segments); i++ {
+        newtp.Append(*(tp.segments[i].Simplified()))
+    }
+
+    return &newtp
+}
+
+func (tp *Toolpath) Append(seg ToolpathSegment) {
+    tp.segments = append(tp.segments, seg)
 }
 
 func (tp *Toolpath) ToGcode(opt Options) string {

@@ -65,13 +65,13 @@ func (j *Job) MakeToolpath() {
         seg := NewToolpathSegment()
 
         for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
-            seg.points = append(seg.points, Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
+            seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
 
             x += xStep
             y += yStep
         }
 
-        j.mainToolpath.segments = append(j.mainToolpath.segments, seg)
+        j.mainToolpath.Append(seg)
 
         if opt.direction == Horizontal {
             y += opt.stepOver
@@ -116,7 +116,7 @@ func (j *Job) Postamble() string {
 }
 
 func (j *Job) Finishing() string {
-    return j.mainToolpath.ToGcode(*j.options)
+    return j.mainToolpath.Simplified().ToGcode(*j.options)
 }
 
 func (j *Job) Roughing() string {
@@ -130,7 +130,7 @@ func (j *Job) Roughing() string {
     gcode := ""
 
     for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
-        gcode += j.RoughingLevel(z).ToGcode(*opt)
+        gcode += j.RoughingLevel(z).Simplified().ToGcode(*opt)
     }
 
     return gcode
@@ -145,18 +145,18 @@ func (j *Job) RoughingLevel(z float64) *Toolpath {
             tp := j.mainToolpath.segments[i].points[p]
             if tp.z < z {
                 // add this point to this roughing segment
-                seg.points = append(seg.points, Toolpoint{tp.x, tp.y, z})
+                seg.Append(Toolpoint{tp.x, tp.y, z})
             } else {
                 // this point isn't in this segment: append what we have and make a new segment
                 if len(seg.points) > 0 {
-                    path.segments = append(path.segments, seg)
+                    path.Append(seg)
                 }
                 seg = NewToolpathSegment()
             }
         }
 
         if len(seg.points) > 0 {
-            path.segments = append(path.segments, seg)
+            path.Append(seg)
         }
     }
 
