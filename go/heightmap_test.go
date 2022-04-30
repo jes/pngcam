@@ -42,6 +42,4 @@ func TestHeightmap(t *testing.T) {
             }
         }
     }
-
-    toolpointsmap.WritePNG("foo.png")
 }
