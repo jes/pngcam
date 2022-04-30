@@ -179,7 +179,7 @@ func (j *Job) RoughingLevel(z float64) *Toolpath {
         seg := NewToolpathSegment()
         for p := range j.mainToolpath.segments[i].points {
             tp := j.mainToolpath.segments[i].points[p]
-            if tp.z < z {
+            if tp.z < z && (j.readStock == nil || z < j.readStock.GetMm(tp.x,tp.y)) {
                 // add this point to this roughing segment
                 seg.Append(Toolpoint{tp.x, tp.y, z})
             } else {
