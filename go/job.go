@@ -68,13 +68,6 @@ func (j *Job) MakeToolpath() {
     x := zero
     y := zero
 
-    // TODO: maybe the step over should also follow the contours of the toolpoints map, 1 px at a time? maybe something like:
-    // addPathSegment(0,0, 100,0)
-    // addPathSegment(100,0, 100,10)
-    // addPathSegment(100,10, 0,10)
-    // addPathSegment(0,10, 0,20)
-    // ...
-
     for x >= zero && y >= zero && x < xLimit && y < yLimit {
         seg := NewToolpathSegment()
 
