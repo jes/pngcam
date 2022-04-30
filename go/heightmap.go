@@ -17,6 +17,7 @@ type HeightmapImage struct {
 type ToolpointsMap struct {
     w int
     h int
+    hm *HeightmapImage
     height []float64
     x_MmPerPx float64
     y_MmPerPx float64
@@ -52,16 +53,15 @@ func (hm *HeightmapImage) ToToolpointsMap() *ToolpointsMap {
     tpm := &ToolpointsMap{
         w: w,
         h: h,
+        hm: hm,
         height: make([]float64, w*h),
         x_MmPerPx: hm.x_MmPerPx,
         y_MmPerPx: hm.y_MmPerPx,
         options: opt,
     }
 
-    for y := 0; y < h; y++ {
-        for x := 0; x < w; x++ {
-            tpm.SetPx(x, y, hm.CutDepth(float64(x) * tpm.x_MmPerPx, float64(y) * tpm.y_MmPerPx))
-        }
+    for i := 0; i < w*h; i++ {
+        tpm.height[i] = math.NaN()
     }
 
     return tpm
@@ -99,8 +99,7 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 func (hm *HeightmapImage) GetDepth(x, y float64) float64 {
     opt := hm.options
 
-    px := int(x / hm.x_MmPerPx)
-    py := int(y / hm.y_MmPerPx)
+    px,py := hm.MmToPx(x, y)
 
     r,g,b,_ := hm.img.At(px, py).RGBA()
     r /= 257
@@ -126,7 +125,18 @@ func (m *ToolpointsMap) GetMm(x, y float64) float64 {
 }
 
 func (m *ToolpointsMap) MmToPx(x, y float64) (int, int) {
-    return int(x / m.x_MmPerPx), int(y / m.y_MmPerPx)
+    return int(x / m.x_MmPerPx), int(-y / m.y_MmPerPx) + m.h-1
+}
+func (m *ToolpointsMap) PxToMm(x, y int) (float64, float64) {
+    return float64(x) * m.x_MmPerPx, float64(m.h-1-y) * m.y_MmPerPx
+}
+
+// XXX: can we do this without copy and paste using an interface?
+func (m *HeightmapImage) MmToPx(x, y float64) (int, int) {
+    return int(x / m.x_MmPerPx), int(-y / m.y_MmPerPx) + m.img.Bounds().Max.Y-1
+}
+func (m *HeightmapImage) PxToMm(x, y int) (float64, float64) {
+    return float64(x) * m.x_MmPerPx, float64(m.img.Bounds().Max.Y-1-y) * m.y_MmPerPx
 }
 
 func (m *ToolpointsMap) SetPx(x, y int, z float64) {
@@ -139,6 +149,9 @@ func (m *ToolpointsMap) SetPx(x, y int, z float64) {
 func (m *ToolpointsMap) GetPx(x, y int) float64 {
     if x < 0 || y < 0 || x >= m.w || y >= m.h {
         return math.Inf(-1)
+    }
+    if math.IsNaN(m.height[y*m.w + x]) {
+        m.height[y*m.w + x] = m.hm.CutDepth(m.PxToMm(x, y))
     }
     return m.height[y*m.w + x]
 }
