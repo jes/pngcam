@@ -56,8 +56,17 @@ func (j *Job) MakeToolpath() {
         yStep = j.toolpoints.y_MmPerPx
     }
 
-    x := 0.0
-    y := 0.0
+    zero := 0.0
+
+    if opt.cutBeyondEdges {
+        extraLimit := opt.tool.Radius()
+        zero -= extraLimit
+        xLimit += extraLimit
+        yLimit += extraLimit
+    }
+
+    x := zero
+    y := zero
 
     // TODO: maybe the step over should also follow the contours of the toolpoints map, 1 px at a time? maybe something like:
     // addPathSegment(0,0, 100,0)
@@ -66,10 +75,10 @@ func (j *Job) MakeToolpath() {
     // addPathSegment(0,10, 0,20)
     // ...
 
-    for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
+    for x >= zero && y >= zero && x < xLimit && y < yLimit {
         seg := NewToolpathSegment()
 
-        for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
+        for x >= zero && y >= zero && x < xLimit && y < yLimit {
             seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
 
             x += xStep

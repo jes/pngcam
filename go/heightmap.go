@@ -156,7 +156,11 @@ func (m *ToolpointsMap) SetPx(x, y int, z float64) {
 
 func (m *ToolpointsMap) GetPx(x, y int) float64 {
     if x < 0 || y < 0 || x >= m.w || y >= m.h {
-        return math.Inf(-1)
+        if m.hm == nil {
+            return math.Inf(-1)
+        } else {
+            return m.hm.CutDepth(m.PxToMm(x, y))
+        }
     }
     if math.IsNaN(m.height[y*m.w + x]) {
         if m.hm != nil {
