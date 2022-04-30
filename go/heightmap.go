@@ -7,12 +7,8 @@ import (
     "os"
 )
 
-// TODO: shouldn't MmPerPx be in "options" instead of duplicated everywhere? Same for MmToPx and PxToMm?
-
 type HeightmapImage struct {
     img image.Image
-    x_MmPerPx float64
-    y_MmPerPx float64
     options *Options
 }
 
@@ -21,8 +17,6 @@ type ToolpointsMap struct {
     h int
     hm *HeightmapImage
     height []float64
-    x_MmPerPx float64
-    y_MmPerPx float64
     options *Options
 }
 
@@ -40,8 +34,6 @@ func OpenHeightmapImage(path string, opt *Options) (*HeightmapImage, error) {
 
     return &HeightmapImage{
         img: img,
-        x_MmPerPx: opt.width / float64(img.Bounds().Max.X),
-        y_MmPerPx: opt.height / float64(img.Bounds().Max.Y),
         options: opt,
     }, nil
 }
@@ -66,8 +58,8 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 
     maxDepth := belowBottomDepth
 
-    for sy := -tool.Radius(); sy <= tool.Radius(); sy += hm.y_MmPerPx {
-        for sx := -tool.Radius(); sx <= tool.Radius(); sx += hm.x_MmPerPx {
+    for sy := -tool.Radius(); sy <= tool.Radius(); sy += opt.y_MmPerPx {
+        for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
             r := math.Sqrt(sx*sx + sy*sy)
             if r > tool.Radius() {
                 continue
@@ -90,7 +82,7 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 func (hm *HeightmapImage) GetDepth(x, y float64) float64 {
     opt := hm.options
 
-    px,py := hm.MmToPx(x, y)
+    px,py := opt.MmToPx(x, y)
 
     r,g,b,_ := hm.img.At(px, py).RGBA()
     r /= 257
@@ -113,8 +105,6 @@ func NewToolpointsMap(w,h int, options *Options, init float64) *ToolpointsMap {
         h: h,
         hm: nil,
         height: make([]float64, w*h),
-        x_MmPerPx: options.width / float64(w),
-        y_MmPerPx: options.height / float64(h),
         options: options,
     }
 
@@ -126,27 +116,13 @@ func NewToolpointsMap(w,h int, options *Options, init float64) *ToolpointsMap {
 }
 
 func (m *ToolpointsMap) SetMm(x, y, z float64) {
-    px,py := m.MmToPx(x,y)
+    px,py := m.options.MmToPx(x,y)
     m.SetPx(px, py, z)
 }
 
 func (m *ToolpointsMap) GetMm(x, y float64) float64 {
-    px,py := m.MmToPx(x,y)
+    px,py := m.options.MmToPx(x,y)
     return m.GetPx(px, py)
-}
-
-func (m *ToolpointsMap) MmToPx(x, y float64) (int, int) {
-    return int(x / m.x_MmPerPx), int(-y / m.y_MmPerPx) + m.h-1
-}
-func (m *ToolpointsMap) PxToMm(x, y int) (float64, float64) {
-    return float64(x) * m.x_MmPerPx, float64(m.h-1-y) * m.y_MmPerPx
-}
-
-func (m *HeightmapImage) MmToPx(x, y float64) (int, int) {
-    return int(x / m.x_MmPerPx), int(-y / m.y_MmPerPx) + m.img.Bounds().Max.Y-1
-}
-func (m *HeightmapImage) PxToMm(x, y int) (float64, float64) {
-    return float64(x) * m.x_MmPerPx, float64(m.img.Bounds().Max.Y-1-y) * m.y_MmPerPx
 }
 
 func (m *ToolpointsMap) SetPx(x, y int, z float64) {
@@ -161,12 +137,12 @@ func (m *ToolpointsMap) GetPx(x, y int) float64 {
         if m.hm == nil {
             return math.Inf(-1)
         } else {
-            return m.hm.CutDepth(m.PxToMm(x, y))
+            return m.hm.CutDepth(m.options.PxToMm(x, y))
         }
     }
     if math.IsNaN(m.height[y*m.w + x]) {
         if m.hm != nil {
-            m.height[y*m.w + x] = m.hm.CutDepth(m.PxToMm(x, y))
+            m.height[y*m.w + x] = m.hm.CutDepth(m.options.PxToMm(x, y))
         }
     }
     return m.height[y*m.w + x]
@@ -204,13 +180,14 @@ func (m *ToolpointsMap) PlotPixel(x, y, z float64) {
 }
 
 func (m *ToolpointsMap) PlotPoint(x, y, z float64) {
-    tool := m.options.tool
+    opt := m.options
+    tool := opt.tool
 
     // pretend tool is 1px larger so that we don't leave tall spikes between rows
-    r := tool.Radius() + m.x_MmPerPx
+    r := tool.Radius() + opt.x_MmPerPx
 
-    for sy := -r; sy <= r; sy += m.y_MmPerPx {
-        for sx := -r; sx <= r; sx += m.x_MmPerPx {
+    for sy := -r; sy <= r; sy += opt.y_MmPerPx {
+        for sx := -r; sx <= r; sx += opt.x_MmPerPx {
             r := math.Sqrt(sx*sx + sy*sy)
             if r > tool.Radius() {
                 continue
@@ -234,7 +211,7 @@ func (m *ToolpointsMap) PlotLine(x1,y1,z1, x2,y2,z2 float64) {
     zStep := dz / xyDist
 
     // TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
-    for k := 0.0; k <= xyDist; k += m.x_MmPerPx {
+    for k := 0.0; k <= xyDist; k += m.options.x_MmPerPx {
         m.PlotPoint(x1 + xStep*k, y1 + yStep*k, z1 + zStep*k)
     }
 }

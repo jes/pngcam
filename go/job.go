@@ -22,6 +22,11 @@ func NewJob(opt *Options) (*Job, error) {
         return nil, err
     }
 
+    opt.x_MmPerPx = opt.width / float64(hm.img.Bounds().Max.X)
+    opt.y_MmPerPx = opt.height / float64(hm.img.Bounds().Max.Y)
+    opt.widthPx = hm.img.Bounds().Max.X
+    opt.heightPx = hm.img.Bounds().Max.Y
+
     j.toolpoints = hm.ToToolpointsMap()
 
     if opt.readStockPath != "" {
@@ -49,11 +54,11 @@ func (j *Job) MakeToolpath() {
     xLimit := opt.width
     yLimit := opt.height
 
-    xStep := j.toolpoints.x_MmPerPx
+    xStep := opt.x_MmPerPx
     yStep := 0.0
     if opt.direction == Vertical {
         xStep = 0.0
-        yStep = j.toolpoints.y_MmPerPx
+        yStep = opt.y_MmPerPx
     }
 
     zero := 0.0

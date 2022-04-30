@@ -50,6 +50,11 @@ type Options struct {
     maxAccel float64
 
     quiet bool
+
+    x_MmPerPx float64
+    y_MmPerPx float64
+    widthPx int
+    heightPx int
 }
 
 func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
@@ -75,4 +80,12 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
         // Z feed is limiting factor
         return math.Abs(totalDist/zDist) * opt.zFeed
     }
+}
+
+func (opt Options) MmToPx(x, y float64) (int, int) {
+    return int(x / opt.x_MmPerPx), int(-y / opt.y_MmPerPx) + opt.heightPx-1
+}
+
+func (opt Options) PxToMm(x, y int) (float64, float64) {
+    return float64(x) * opt.x_MmPerPx, float64(opt.heightPx-1-y) * opt.y_MmPerPx
 }
