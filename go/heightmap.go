@@ -102,7 +102,9 @@ func (hm *HeightmapImage) GetDepth(x, y float64) float64 {
 }
 
 func (hm *HeightmapImage) IsBottom(x, y float64) bool {
-    return hm.GetDepth(x,y) == 0
+    epsilon := 0.00001
+
+    return hm.GetDepth(x,y) < -hm.options.depth+epsilon
 }
 
 func NewToolpointsMap(w,h int, options *Options, init float64) *ToolpointsMap {
