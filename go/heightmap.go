@@ -179,7 +179,10 @@ func (m *ToolpointsMap) WritePNG(path string) {
         for x := 0; x < m.w; x++ {
             n := y*m.w + x
 
-            brightness := int(16777215 * (m.height[n]/m.options.depth+1))
+            z := m.height[n]
+            if z > 0 { z = 0 }
+            if z < -m.options.depth { z = -m.options.depth }
+            brightness := int(16777215 * (z/m.options.depth+1))
 
             img.Pix[n*4] = uint8(brightness >> 16)
             img.Pix[n*4+1] = uint8((brightness >> 8) & 0xff)
