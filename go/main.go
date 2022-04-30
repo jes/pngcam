@@ -116,5 +116,5 @@ func main() {
 
     job, err := NewJob(&opt)
 
-    print(job.Gcode())
+    os.Stdout.WriteString(job.Gcode())
 }

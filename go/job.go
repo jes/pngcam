@@ -9,6 +9,7 @@ type Job struct {
     options *Options
     toolpoints *ToolpointsMap
     readStock *ToolpointsMap
+    mainToolpath *Toolpath
 }
 
 func NewJob(opt *Options) (*Job, error) {
@@ -30,7 +31,62 @@ func NewJob(opt *Options) (*Job, error) {
         j.readStock = hm.ToToolpointsMap()
     }
 
+    j.MakeToolpath()
+
     return &j, nil
+}
+
+func (j *Job) MakeToolpath() {
+    j.mainToolpath = &Toolpath{
+        segments: []ToolpathSegment{},
+    }
+
+    opt := j.options
+
+    xLimit := opt.width
+    yLimit := opt.height
+
+    xStep := j.toolpoints.x_MmPerPx
+    yStep := 0.0
+    if opt.direction == Vertical {
+        xStep = 0.0
+        yStep = j.toolpoints.y_MmPerPx
+    }
+
+    x := 0.0
+    y := 0.0
+
+    // TODO: the step over should also follow the contours of the toolpoints map, 1 px at a time; maybe something like:
+    // addPathSegment(0,0, 100,0)
+    // addPathSegment(100,0, 100,10)
+    // addPathSegment(100,10, 0,10)
+    // addPathSegment(0,10, 0,20)
+    // ...
+
+    for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
+        seg := &ToolpathSegment{
+            points: []Toolpoint{},
+        }
+
+        for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
+            seg.points = append(seg.points, Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
+
+            x += xStep
+            y += yStep
+        }
+
+        j.mainToolpath.segments = append(j.mainToolpath.segments, *seg)
+
+        if opt.direction == Horizontal {
+            y += opt.stepOver
+            xStep = -xStep
+            x += xStep
+        } else {
+            x += opt.stepOver
+            yStep = -yStep
+            y += yStep
+        }
+    }
 }
 
 func (j *Job) Gcode() string {
@@ -64,7 +120,7 @@ func (j *Job) Postamble() string {
 }
 
 func (j *Job) Finishing() string {
-    return ""
+    return j.mainToolpath.ToGcode(*j.options)
 }
 
 func (j *Job) Roughing() string {

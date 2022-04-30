@@ -16,7 +16,6 @@ func TestHeightmap(t *testing.T) {
         depth: 10,
 
         stepOver: 1,
-        stepForward: 1,
         stepDown: 1,
 
         direction: Horizontal,

@@ -114,10 +114,10 @@ sub one_pass {
         $ylimit = $self->{height}+$self->{step_forward};
     }
     $xlimit -= 1/ $self->{x_px_mm};
-    $ylimit -= 1/ $self->{x_px_mm};
+    $ylimit -= 1/ $self->{y_px_mm};
 
     my $extralimit = $self->{beyond_edges} ? $self->{tool_diameter}/2 : 0;
-    my $zero  =0;
+    my $zero  = 0;
     $zero -= $extralimit;
     $xlimit += $extralimit;
     $ylimit += $extralimit;
