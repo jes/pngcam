@@ -90,6 +90,25 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
     return gcode.String()
 }
 
+func (seg *ToolpathSegment) OmitTop() *Toolpath {
+    tp := NewToolpath()
+
+    newseg := NewToolpathSegment()
+
+    epsilon := 0.00001
+
+    for i := 0; i < len(seg.points); i++ {
+        if seg.points[i].z > -epsilon {
+            tp.Append(newseg)
+            newseg = NewToolpathSegment()
+        } else {
+            newseg.Append(seg.points[i])
+        }
+    }
+
+    return &tp
+}
+
 func (tp *Toolpath) Simplified() *Toolpath {
     newtp := NewToolpath()
 
@@ -111,12 +130,20 @@ func (tp *Toolpath) AppendToolpath(more *Toolpath) {
 }
 
 func (tp *Toolpath) ToGcode(opt Options) string {
+    if len(tp.segments) == 0 {
+        return ""
+    }
+
     gcode := strings.Builder{}
 
     // hop up to safe Z
     fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ, opt.rapidFeed)
 
     for i := 0; i < len(tp.segments); i++ {
+        if len(tp.segments[i].points) == 0 {
+            continue
+        }
+
         p0 := tp.segments[i].points[0]
 
         // move to the start point of this segment

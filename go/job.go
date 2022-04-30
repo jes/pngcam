@@ -76,7 +76,11 @@ func (j *Job) MakeToolpath() {
             y += yStep
         }
 
-        j.mainToolpath.Append(seg)
+        if opt.omitTop {
+            j.mainToolpath.AppendToolpath(seg.OmitTop())
+        } else {
+            j.mainToolpath.Append(seg)
+        }
 
         if opt.direction == Horizontal {
             y += opt.stepOver
