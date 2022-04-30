@@ -132,23 +132,27 @@ func (j *Job) Gcode() string {
         j.writeStock.PlotToolpath(roughingPath)
     }
 
-    gcode := ""
+    gcode := roughingPath.ToGcode(*j.options)
+    cycleTime := roughingPath.CycleTime(*j.options)
 
-    if (j.options.roughingOnly) {
-        gcode = j.Preamble() + roughingPath.ToGcode(*j.options) + j.Postamble()
-    } else {
+    if (!j.options.roughingOnly) {
         finishingPath := j.Finishing()
         if j.writeStock != nil {
             j.writeStock.PlotToolpath(finishingPath)
         }
-        gcode = j.Preamble() + roughingPath.ToGcode(*j.options) + finishingPath.ToGcode(*j.options) + j.Postamble()
+        gcode += finishingPath.ToGcode(*j.options)
+        cycleTime += finishingPath.CycleTime(*j.options)
     }
 
     if j.writeStock != nil {
         j.writeStock.WritePNG(j.options.writeStockPath)
     }
 
-    return gcode
+    if !j.options.quiet {
+        fmt.Fprintf(os.Stderr, "Cycle time estimate: %g secs\n", cycleTime)
+    }
+
+    return j.Preamble() + gcode + j.Postamble()
 }
 
 func (j *Job) Preamble() string {
