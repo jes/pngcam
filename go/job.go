@@ -175,9 +175,9 @@ func (j *Job) Roughing() *Toolpath {
 func (j *Job) RoughingLevel(z float64) *Toolpath {
     path := NewToolpath()
 
-    for i := 0; i < len(j.mainToolpath.segments); i++ {
+    for i := range j.mainToolpath.segments {
         seg := NewToolpathSegment()
-        for p := 0; p < len(j.mainToolpath.segments[i].points); p++ {
+        for p := range j.mainToolpath.segments[i].points {
             tp := j.mainToolpath.segments[i].points[p]
             if tp.z < z {
                 // add this point to this roughing segment

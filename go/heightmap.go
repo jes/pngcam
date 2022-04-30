@@ -250,7 +250,7 @@ func (m *ToolpointsMap) PlotToolpathSegment(seg *ToolpathSegment) {
 }
 
 func (m *ToolpointsMap) PlotToolpath(tp *Toolpath) {
-    for i := 0; i < len(tp.segments); i++ {
+    for i := range tp.segments {
         m.PlotToolpathSegment(&tp.segments[i])
     }
 }

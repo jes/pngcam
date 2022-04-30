@@ -97,7 +97,7 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
 
     epsilon := 0.00001
 
-    for i := 0; i < len(seg.points); i++ {
+    for i := range seg.points {
         if seg.points[i].z > -epsilon {
             tp.Append(newseg)
             newseg = NewToolpathSegment()
@@ -112,7 +112,7 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
 func (tp *Toolpath) Simplified() *Toolpath {
     newtp := NewToolpath()
 
-    for i := 0; i < len(tp.segments); i++ {
+    for i := range tp.segments {
         newtp.Append(*(tp.segments[i].Simplified()))
     }
 
@@ -124,7 +124,7 @@ func (tp *Toolpath) Append(seg ToolpathSegment) {
 }
 
 func (tp *Toolpath) AppendToolpath(more *Toolpath) {
-    for i := 0; i < len(more.segments); i++ {
+    for i := range more.segments {
         tp.Append(more.segments[i])
     }
 }
@@ -139,7 +139,7 @@ func (tp *Toolpath) ToGcode(opt Options) string {
     // hop up to safe Z
     fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ, opt.rapidFeed)
 
-    for i := 0; i < len(tp.segments); i++ {
+    for i := range tp.segments {
         if len(tp.segments[i].points) == 0 {
             continue
         }
