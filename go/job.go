@@ -9,7 +9,7 @@ type Job struct {
     options *Options
     toolpoints *ToolpointsMap
     readStock *ToolpointsMap
-    mainToolpath *Toolpath
+    mainToolpath Toolpath
 }
 
 func NewJob(opt *Options) (*Job, error) {
@@ -37,9 +37,7 @@ func NewJob(opt *Options) (*Job, error) {
 }
 
 func (j *Job) MakeToolpath() {
-    j.mainToolpath = &Toolpath{
-        segments: []ToolpathSegment{},
-    }
+    j.mainToolpath = NewToolpath()
 
     opt := j.options
 
@@ -56,7 +54,7 @@ func (j *Job) MakeToolpath() {
     x := 0.0
     y := 0.0
 
-    // TODO: the step over should also follow the contours of the toolpoints map, 1 px at a time; maybe something like:
+    // TODO: maybe the step over should also follow the contours of the toolpoints map, 1 px at a time? maybe something like:
     // addPathSegment(0,0, 100,0)
     // addPathSegment(100,0, 100,10)
     // addPathSegment(100,10, 0,10)
@@ -64,9 +62,7 @@ func (j *Job) MakeToolpath() {
     // ...
 
     for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
-        seg := &ToolpathSegment{
-            points: []Toolpoint{},
-        }
+        seg := NewToolpathSegment()
 
         for x >= 0.0 && y >= 0.0 && x < xLimit && y < yLimit {
             seg.points = append(seg.points, Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
@@ -75,7 +71,7 @@ func (j *Job) MakeToolpath() {
             y += yStep
         }
 
-        j.mainToolpath.segments = append(j.mainToolpath.segments, *seg)
+        j.mainToolpath.segments = append(j.mainToolpath.segments, seg)
 
         if opt.direction == Horizontal {
             y += opt.stepOver
@@ -124,5 +120,45 @@ func (j *Job) Finishing() string {
 }
 
 func (j *Job) Roughing() string {
-    return ""
+    opt := j.options
+
+    deepest := -opt.depth
+    if opt.cutBelowBottom {
+        deepest -= opt.tool.Radius()
+    }
+
+    gcode := ""
+
+    for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
+        gcode += j.RoughingLevel(z).ToGcode(*opt)
+    }
+
+    return gcode
+}
+
+func (j *Job) RoughingLevel(z float64) *Toolpath {
+    path := NewToolpath()
+
+    for i := 0; i < len(j.mainToolpath.segments); i++ {
+        seg := NewToolpathSegment()
+        for p := 0; p < len(j.mainToolpath.segments[i].points); p++ {
+            tp := j.mainToolpath.segments[i].points[p]
+            if tp.z < z {
+                // add this point to this roughing segment
+                seg.points = append(seg.points, Toolpoint{tp.x, tp.y, z})
+            } else {
+                // this point isn't in this segment: append what we have and make a new segment
+                if len(seg.points) > 0 {
+                    path.segments = append(path.segments, seg)
+                }
+                seg = NewToolpathSegment()
+            }
+        }
+
+        if len(seg.points) > 0 {
+            path.segments = append(path.segments, seg)
+        }
+    }
+
+    return &path
 }

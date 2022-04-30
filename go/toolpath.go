@@ -19,6 +19,18 @@ type Toolpath struct {
     segments []ToolpathSegment
 }
 
+func NewToolpathSegment() ToolpathSegment {
+    return ToolpathSegment{
+        points: []Toolpoint{},
+    }
+}
+
+func NewToolpath() Toolpath {
+    return Toolpath{
+        segments: []ToolpathSegment{},
+    }
+}
+
 func (seg *ToolpathSegment) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 
