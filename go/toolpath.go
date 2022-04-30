@@ -106,6 +106,8 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
         }
     }
 
+    tp.Append(newseg)
+
     return &tp
 }
 
