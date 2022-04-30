@@ -15,7 +15,7 @@ func TestHeightmap(t *testing.T) {
         height: 650,
         depth: 10,
 
-        stepOver: 1,
+        stepOver: 10,
         stepDown: 1,
 
         direction: Horizontal,
@@ -30,7 +30,7 @@ func TestHeightmap(t *testing.T) {
     }
 
     toolpointsmap := heightmap.ToToolpointsMap()
-    for y := 0; y < toolpointsmap.h; y++ {
+    for y := 0; y < toolpointsmap.h; y += int(opt.stepOver) {
         for x := 0; x < toolpointsmap.w; x++ {
             z := toolpointsmap.GetPx(x, y)
             if z < -opt.depth {
