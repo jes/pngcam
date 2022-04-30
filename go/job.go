@@ -80,13 +80,14 @@ func (j *Job) MakeToolpath() {
 
         if opt.direction == Horizontal {
             y += opt.stepOver
-            xStep = -xStep
-            x += xStep
         } else {
             x += opt.stepOver
-            yStep = -yStep
-            y += yStep
         }
+
+        xStep = -xStep
+        yStep = -yStep
+        x += xStep
+        y += yStep
     }
 }
 
