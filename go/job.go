@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "os"
     "strings"
 )
 
@@ -41,6 +42,14 @@ func NewJob(opt *Options) (*Job, error) {
         j.writeStock = NewToolpointsMap(hm.img.Bounds().Max.X, hm.img.Bounds().Max.Y, opt, 0)
     }
 
+    if !opt.quiet {
+        unit := "mm"
+        if opt.imperial { unit = "inches" }
+        fmt.Fprintf(os.Stderr, "%dx%d px height map. %gx%g %s work piece.\n", opt.widthPx, opt.heightPx, opt.width, opt.height, unit)
+        fmt.Fprintf(os.Stderr, "X resolution is %g px/%s. Y resolution is %g px/%s.\n", 1/opt.x_MmPerPx, unit, 1/opt.y_MmPerPx, unit)
+        fmt.Fprintf(os.Stderr, "Step-over is %g %s = %g px in X and %g px in Y.\n", opt.stepOver, unit, opt.stepOver/opt.x_MmPerPx, opt.stepOver/opt.y_MmPerPx)
+    }
+
     j.MakeToolpath()
 
     return &j, nil
@@ -73,6 +82,10 @@ func (j *Job) MakeToolpath() {
     x := zero
     y := zero
 
+    if !opt.quiet {
+        fmt.Fprintf(os.Stderr, "Generating path: 0%")
+    }
+
     for x >= zero && y >= zero && x < xLimit && y < yLimit {
         seg := NewToolpathSegment()
 
@@ -89,16 +102,27 @@ func (j *Job) MakeToolpath() {
             j.mainToolpath.Append(seg)
         }
 
+        pct := 0.0
         if opt.direction == Horizontal {
             y += opt.stepOver
+            pct = float64(100 * y) / opt.height
         } else {
             x += opt.stepOver
+            pct = float64(100 * x) / opt.width
         }
 
         xStep = -xStep
         yStep = -yStep
         x += xStep
         y += yStep
+
+        if !opt.quiet {
+            fmt.Fprintf(os.Stderr,"   \rGenerating path: %.0f%%", pct)
+        }
+    }
+
+    if !opt.quiet {
+        fmt.Fprintf(os.Stderr, "   \rGenerating path: done\n")
     }
 }
 
