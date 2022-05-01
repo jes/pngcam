@@ -49,17 +49,17 @@ func (seg *ToolpathSegment) AppendSegment(more *ToolpathSegment) {
     }
 }
 
-func (seg *ToolpathSegment) Simplified() *ToolpathSegment {
+func (seg *ToolpathSegment) Simplified() ToolpathSegment {
     newseg := NewToolpathSegment()
 
     if len(seg.points) == 0 {
-        return &newseg
+        return newseg
     }
 
     newseg.Append(seg.points[0])
 
     if len(seg.points) == 1 {
-        return &newseg
+        return newseg
     }
 
     epsilon := 0.00001
@@ -88,7 +88,7 @@ func (seg *ToolpathSegment) Simplified() *ToolpathSegment {
 
     newseg.Append(prev)
 
-    return &newseg
+    return newseg
 }
 
 func (seg *ToolpathSegment) ToGcode(opt Options) string {
@@ -150,7 +150,7 @@ func (tp *Toolpath) Simplified() *Toolpath {
     newtp := NewToolpath()
 
     for i := range tp.segments {
-        newtp.Append(*(tp.segments[i].Simplified()))
+        newtp.Append(tp.segments[i].Simplified())
     }
 
     return &newtp

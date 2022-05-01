@@ -97,9 +97,9 @@ func (j *Job) MakeToolpath() {
         }
 
         if opt.omitTop {
-            j.mainToolpath.AppendToolpath(seg.OmitTop())
+            j.mainToolpath.AppendToolpath(seg.OmitTop().Simplified())
         } else {
-            j.mainToolpath.Append(seg)
+            j.mainToolpath.Append(seg.Simplified())
         }
 
         pct := 0.0
