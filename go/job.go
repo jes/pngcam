@@ -127,10 +127,10 @@ func (j *Job) MakeToolpath() {
 }
 
 func (j *Job) Gcode() string {
-    path := j.Roughing().Sorted()
+    path := j.Roughing()
 
     if (!j.options.roughingOnly) {
-        path.AppendToolpath(j.Finishing().Sorted())
+        path.AppendToolpath(j.Finishing())
     }
 
     gcode := path.ToGcode(*j.options)
@@ -171,7 +171,7 @@ func (j *Job) Postamble() string {
 }
 
 func (j *Job) Finishing() *Toolpath {
-    return j.mainToolpath.Simplified()
+    return j.mainToolpath.Simplified().Sorted()
 }
 
 func (j *Job) Roughing() *Toolpath {
@@ -188,7 +188,7 @@ func (j *Job) Roughing() *Toolpath {
         path.AppendToolpath(j.RoughingLevel(z).Simplified())
     }
 
-    return &path
+    return path.Sorted()
 }
 
 func (j *Job) RoughingLevel(z float64) *Toolpath {
