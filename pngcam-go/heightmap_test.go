@@ -24,7 +24,7 @@ func TestHeightmap(t *testing.T) {
         stockToLeave: 0,
     }
 
-    heightmap, err := OpenHeightmapImage("../klingon-dagger.png", &opt)
+    heightmap, err := OpenHeightmapImage("../t/data/klingon-dagger.png", &opt)
     if err != nil {
         t.Errorf("can't open image: %v", err)
     }
