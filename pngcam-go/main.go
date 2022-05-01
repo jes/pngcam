@@ -4,6 +4,7 @@ import (
     "flag"
     "fmt"
     "os"
+    "runtime/pprof"
 )
 
 func main() {
@@ -43,6 +44,8 @@ func main() {
 
     quiet := flag.Bool("quiet", false, "Suppress output of dimensions, resolutions, and progress.")
 
+    cpuProfile := flag.String("cpuprofile", "", "Write CPU profile to file.")
+
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage:\n")
         flag.PrintDefaults()
@@ -50,6 +53,16 @@ func main() {
     }
 
     flag.Parse()
+
+    if *cpuProfile != "" {
+        f, err := os.Create(*cpuProfile)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "%v\n", err)
+            os.Exit(1)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
 
     tool, err := NewTool(*toolShape, *toolDiameter)
     if err != nil {
