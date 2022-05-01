@@ -280,6 +280,9 @@ func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
 
     seg := NewToolpathSegment()
 
+    // TODO: allow rapid through the middle of material that we've already cut,
+    // using the writeStock.GetMm() to decide?
+
     // TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
     for k := 0.0; k <= dist; k += j.options.x_MmPerPx {
         x = a.x + k * dx

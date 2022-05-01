@@ -330,9 +330,9 @@ func (tp *Toolpath) AsOneSegment(opt Options) *ToolpathSegment {
         // move to the start point of this segment
         seg.Append(Toolpoint{p0.x, p0.y, opt.safeZ, RapidFeed})
 
-        // rapid down to safe Z above start height?
-        if p0.z+opt.safeZ < opt.safeZ {
-            seg.Append(Toolpoint{p0.x, p0.y, p0.z+opt.safeZ, RapidFeed})
+        // rapid down to stepDown above start height?
+        if p0.z+opt.stepDown < opt.safeZ {
+            seg.Append(Toolpoint{p0.x, p0.y, p0.z+opt.stepDown, RapidFeed})
         }
 
         // move through the rest of the segment
