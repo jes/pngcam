@@ -285,7 +285,10 @@ func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
         x = a.x + k * dx
         y = a.y + k * dy
 
-        seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y), CuttingFeed})
+        z := j.toolpoints.GetMm(x,y)
+        if z < deepestZ { z = deepestZ }
+
+        seg.Append(Toolpoint{x, y, z, CuttingFeed})
     }
 
     return seg
