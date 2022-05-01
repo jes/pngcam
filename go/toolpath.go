@@ -139,8 +139,16 @@ func (seg *ToolpathSegment) CycleTime(opt Options) float64 {
         dy := seg.points[i].y-seg.points[i-1].y
         dz := seg.points[i].z-seg.points[i-1].z
         dist := math.Sqrt(dx*dx + dy*dy + dz*dz)
-        // TODO: use real feed rate instead of maxVel
-        cycleTime += 60 * (dist / opt.maxVel)
+
+        feedRate := opt.rapidFeed
+        if seg.points[i].feed == CuttingFeed {
+            feedRate = opt.FeedRate(seg.points[i-1], seg.points[i])
+        }
+        if feedRate > opt.maxVel {
+            feedRate = opt.maxVel
+        }
+
+        cycleTime += 60 * (dist / feedRate)
     }
 
     return cycleTime
@@ -248,16 +256,5 @@ func (tp *Toolpath) ToGcode(opt Options) string {
 }
 
 func (tp *Toolpath) CycleTime(opt Options) float64 {
-    cycleTime := 0.0
-
-    // TODO: include time taken for travel between segments; maybe we should
-    // have a way to collapse a Toolpath down into a single ToolpathSegment
-    // that includes the entire path in one segment, and then calculate cycle
-    // time of that segment?
-
-    for i:= range tp.segments {
-        cycleTime += tp.segments[i].CycleTime(opt)
-    }
-
-    return cycleTime
+    return tp.AsOneSegment(opt).CycleTime(opt)
 }
