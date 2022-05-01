@@ -148,6 +148,8 @@ func (seg *ToolpathSegment) CycleTime(opt Options) float64 {
             feedRate = opt.maxVel
         }
 
+        // TODO: take opt.maxAccel into account
+
         cycleTime += 60 * (dist / feedRate)
     }
 
