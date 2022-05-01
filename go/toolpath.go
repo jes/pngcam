@@ -271,14 +271,20 @@ func (tp *Toolpath) Sorted() *Toolpath {
 
     needsegs := make(map[int]*ToolpathSegment)
 
+    last := Toolpoint{0,0,0,RapidFeed}
+    gotFirstPoint := false
+
     // take a copy of every segment we need
     for i := range tp.segments {
         if len(tp.segments[i].points) > 0 {
+            if !gotFirstPoint {
+                last = tp.segments[i].points[0]
+                gotFirstPoint = true
+            }
             needsegs[i] = &tp.segments[i]
         }
     }
 
-    last := Toolpoint{0,0,0,RapidFeed}
     // grab the segment which starts nearest to the end point of the last
     // segment, move it into our new toolpath, repeat until done
     for len(needsegs) > 0 {
