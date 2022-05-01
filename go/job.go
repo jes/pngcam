@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "math"
     "os"
     "strings"
 )
@@ -89,6 +90,7 @@ func (j *Job) MakeToolpath() {
     for x >= zero && y >= zero && x < xLimit && y < yLimit {
         seg := NewToolpathSegment()
 
+        // TODO: use CutPath() instead of this weird dual-loop thing
         for x >= zero && y >= zero && x < xLimit && y < yLimit {
             seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y), CuttingFeed})
 
@@ -177,7 +179,7 @@ func (j *Job) Postamble() string {
 }
 
 func (j *Job) Finishing() *Toolpath {
-    return j.mainToolpath.Simplified().Sorted()
+    return j.CombineSegments(j.mainToolpath.Simplified().Sorted())
 }
 
 func (j *Job) Roughing() *Toolpath {
@@ -221,5 +223,70 @@ func (j *Job) RoughingLevel(z float64) *Toolpath {
         }
     }
 
-    return &path
+    return j.CombineSegments(path.Sorted())
+}
+
+func (j *Job) CombineSegments(tp *Toolpath) *Toolpath {
+    opt := j.options
+
+    if len(tp.segments) <= 1 {
+        return tp
+    }
+
+    newtp := NewToolpath()
+
+    // TODO: what happens when there are 0-length segments?
+    // TODO: if opt.omitTop, do we need to take pains to omit top?
+
+    seg := tp.segments[0]
+
+    for i := 1; i < len(tp.segments); i++ {
+        prev := seg.points[len(seg.points)-1]
+        cur := tp.segments[i].points[0]
+
+        rapidPath := tp.RapidPath(prev, cur, *opt)
+        deepestZ := prev.z
+        if cur.z < deepestZ { deepestZ = cur.z }
+        cutPath := j.CutPath(prev, cur, deepestZ)
+
+        // when we have a cutting path that is faster than the rapid path, use it instead
+        // TODO: when cycle time estimates are more accurate, lose the factor of 10
+        if cutPath.CycleTime(*opt) < 10*rapidPath.CycleTime(*opt) {
+            seg.AppendSegment(&cutPath)
+        } else {
+            newtp.Append(seg)
+            seg = NewToolpathSegment()
+        }
+        seg.AppendSegment(&tp.segments[i])
+    }
+
+    if len(seg.points) > 0 {
+        newtp.Append(seg)
+    }
+
+    return &newtp
+}
+
+func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
+    x := a.x
+    y := a.y
+
+    dx := b.x-a.x
+    dy := b.y-a.y
+    dist := math.Sqrt(dx*dx + dy*dy)
+
+    dx /= dist
+    dy /= dist
+
+    seg := NewToolpathSegment()
+
+    // TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
+    for k := 0.0; k <= dist; k += j.options.x_MmPerPx {
+        x = a.x + k * dx
+        y = a.y + k * dy
+
+        seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y), CuttingFeed})
+    }
+
+    return seg
 }

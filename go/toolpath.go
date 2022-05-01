@@ -234,6 +234,7 @@ func (seg *ToolpathSegment) CycleTime(opt Options) float64 {
         }
 
         // TODO: take opt.maxAccel into account
+        // TODO: when cycle time calculation is better, remove the factor of 10 in job.CombineSegments()
 
         cycleTime += 60 * (dist / feedRate)
     }
@@ -317,6 +318,7 @@ func (tp *Toolpath) AsOneSegment(opt Options) *ToolpathSegment {
         return &seg
     }
 
+    // TODO: use RapidPath()
     for i := range tp.segments {
         if len(tp.segments[i].points) == 0 {
             continue
@@ -341,6 +343,23 @@ func (tp *Toolpath) AsOneSegment(opt Options) *ToolpathSegment {
     }
 
     return &seg
+}
+
+func (tp *Toolpath) RapidPath(a, b Toolpoint, opt Options) ToolpathSegment {
+    seg := NewToolpathSegment()
+
+    // move up to safe Z
+    seg.Append(Toolpoint{a.x, a.y, opt.safeZ, RapidFeed})
+
+    // move above next point
+    seg.Append(Toolpoint{b.x, b.y, opt.safeZ, RapidFeed})
+
+    // rapid down to safe Z above?
+    if b.z+opt.safeZ < opt.safeZ {
+        seg.Append(Toolpoint{b.x, b.y, b.z+opt.safeZ, RapidFeed})
+    }
+
+    return seg
 }
 
 func (tp *Toolpath) ToGcode(opt Options) string {
