@@ -90,7 +90,7 @@ func (j *Job) MakeToolpath() {
         seg := NewToolpathSegment()
 
         for x >= zero && y >= zero && x < xLimit && y < yLimit {
-            seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y)})
+            seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x,y), CuttingFeed})
 
             x += xStep
             y += yStep
@@ -127,24 +127,17 @@ func (j *Job) MakeToolpath() {
 }
 
 func (j *Job) Gcode() string {
-    roughingPath := j.Roughing()
-    if j.writeStock != nil {
-        j.writeStock.PlotToolpath(roughingPath)
-    }
-
-    gcode := roughingPath.ToGcode(*j.options)
-    cycleTime := roughingPath.CycleTime(*j.options)
+    path := j.Roughing().Sorted()
 
     if (!j.options.roughingOnly) {
-        finishingPath := j.Finishing()
-        if j.writeStock != nil {
-            j.writeStock.PlotToolpath(finishingPath)
-        }
-        gcode += finishingPath.ToGcode(*j.options)
-        cycleTime += finishingPath.CycleTime(*j.options)
+        path.AppendToolpath(j.Finishing().Sorted())
     }
 
+    gcode := path.ToGcode(*j.options)
+    cycleTime := path.CycleTime(*j.options)
+
     if j.writeStock != nil {
+        j.writeStock.PlotToolpath(path)
         j.writeStock.WritePNG(j.options.writeStockPath)
     }
 
@@ -207,7 +200,7 @@ func (j *Job) RoughingLevel(z float64) *Toolpath {
             tp := j.mainToolpath.segments[i].points[p]
             if tp.z < z && (j.readStock == nil || z < j.readStock.GetMm(tp.x,tp.y)) {
                 // add this point to this roughing segment
-                seg.Append(Toolpoint{tp.x, tp.y, z})
+                seg.Append(Toolpoint{tp.x, tp.y, z, CuttingFeed})
             } else {
                 // this point isn't in this segment: append what we have and make a new segment
                 if len(seg.points) > 0 {

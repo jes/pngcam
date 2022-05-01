@@ -6,10 +6,17 @@ import (
     "strings"
 )
 
+type FeedType int
+const (
+    RapidFeed FeedType = iota
+    CuttingFeed
+)
+
 type Toolpoint struct {
     x float64
     y float64
     z float64
+    feed FeedType
 }
 
 type ToolpathSegment struct {
@@ -34,6 +41,12 @@ func NewToolpath() Toolpath {
 
 func (seg *ToolpathSegment) Append(t Toolpoint) {
     seg.points = append(seg.points, t)
+}
+
+func (seg *ToolpathSegment) AppendSegment(more *ToolpathSegment) {
+    for i := range more.points {
+        seg.Append(more.points[i])
+    }
 }
 
 func (seg *ToolpathSegment) Simplified() *ToolpathSegment {
@@ -84,7 +97,11 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
     // start at i=1 because we assume we're starting from point 0
     for i := 1; i < len(seg.points); i++ {
         p := seg.points[i]
-        fmt.Fprintf(&gcode, "G1 X%.04f Y%.04f Z%.04f F%g\n", p.x+opt.xOffset, p.y+opt.yOffset, p.z+opt.zOffset, opt.FeedRate(seg.points[i-1], p))
+        feedRate := opt.rapidFeed
+        if p.feed == CuttingFeed {
+            feedRate = opt.FeedRate(seg.points[i-1], p)
+        }
+        fmt.Fprintf(&gcode, "G1 X%.04f Y%.04f Z%.04f F%g\n", p.x+opt.xOffset, p.y+opt.yOffset, p.z+opt.zOffset, feedRate)
     }
 
     return gcode.String()
@@ -95,7 +112,10 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
 
     newseg := NewToolpathSegment()
 
-    epsilon := 0.00001
+    // XXX: why does this need to be so large? is it because we're not always
+    // sampling the cutter in the very centre, so sometimes we think we can cut
+    // to z=-0.005 even when it should be exactly 0?
+    epsilon := 0.01
 
     for i := range seg.points {
         if seg.points[i].z > -epsilon {
@@ -136,6 +156,47 @@ func (tp *Toolpath) Simplified() *Toolpath {
     return &newtp
 }
 
+func (tp *Toolpath) Sorted() *Toolpath {
+    newtp := NewToolpath()
+
+    needsegs := make(map[int]*ToolpathSegment)
+
+    // take a copy of every segment we need
+    for i := range tp.segments {
+        if len(tp.segments[i].points) > 0 {
+            needsegs[i] = &tp.segments[i]
+        }
+    }
+
+    last := Toolpoint{0,0,0,RapidFeed}
+    // grab the segment which starts nearest to the end point of the last
+    // segment, move it into our new toolpath, repeat until done
+    for len(needsegs) > 0 {
+        minDist := math.Inf(1)
+        minIdx := 0
+
+        for i,_ := range needsegs {
+            seg := needsegs[i]
+            dx := seg.points[0].x-last.x
+            dy := seg.points[0].y-last.y
+            dz := seg.points[0].z-last.z
+            dist := math.Sqrt(dx*dx + dy*dy + dz*dz)
+            if dist < minDist {
+                minDist = dist
+                minIdx = i
+            }
+        }
+
+        minSeg := needsegs[minIdx]
+        last = minSeg.points[len(minSeg.points)-1]
+        newtp.Append(*minSeg)
+
+        delete(needsegs, minIdx)
+    }
+
+    return &newtp
+}
+
 func (tp *Toolpath) Append(seg ToolpathSegment) {
     tp.segments = append(tp.segments, seg)
 }
@@ -146,15 +207,12 @@ func (tp *Toolpath) AppendToolpath(more *Toolpath) {
     }
 }
 
-func (tp *Toolpath) ToGcode(opt Options) string {
+func (tp *Toolpath) AsOneSegment(opt Options) *ToolpathSegment {
+    seg := NewToolpathSegment()
+
     if len(tp.segments) == 0 {
-        return ""
+        return &seg
     }
-
-    gcode := strings.Builder{}
-
-    // hop up to safe Z
-    fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ+opt.zOffset, opt.rapidFeed)
 
     for i := range tp.segments {
         if len(tp.segments[i].points) == 0 {
@@ -162,27 +220,31 @@ func (tp *Toolpath) ToGcode(opt Options) string {
         }
 
         p0 := tp.segments[i].points[0]
+        pLast := tp.segments[i].points[len(tp.segments[i].points)-1]
 
         // move to the start point of this segment
-        fmt.Fprintf(&gcode, "G1 X%.04f Y%.04f F%g\n", p0.x+opt.xOffset, p0.y+opt.yOffset, opt.rapidFeed)
+        seg.Append(Toolpoint{p0.x, p0.y, opt.safeZ, RapidFeed})
 
         // rapid down to safe Z above start height?
         if p0.z+opt.safeZ < opt.safeZ {
-            fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", p0.z+opt.safeZ+opt.zOffset, opt.rapidFeed)
+            seg.Append(Toolpoint{p0.x, p0.y, p0.z+opt.safeZ, RapidFeed})
         }
 
         // feed down to start height
-        // TODO: ramp entry
-        fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", p0.z+opt.zOffset, opt.zFeed)
+        seg.Append(Toolpoint{p0.x, p0.y, p0.z, CuttingFeed})
 
         // move through the rest of the segment
-        gcode.WriteString(tp.segments[i].ToGcode(opt))
+        seg.AppendSegment(&tp.segments[i])
 
         // back up to safe Z
-        fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ+opt.zOffset, opt.rapidFeed)
+        seg.Append(Toolpoint{pLast.x, pLast.y, opt.safeZ, RapidFeed})
     }
 
-    return gcode.String()
+    return &seg
+}
+
+func (tp *Toolpath) ToGcode(opt Options) string {
+    return tp.AsOneSegment(opt).ToGcode(opt)
 }
 
 func (tp *Toolpath) CycleTime(opt Options) float64 {

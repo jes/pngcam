@@ -37,7 +37,7 @@ func TestFeedRate(t *testing.T) {
 func checkFeedRate(t *testing.T, opt Options, x1 float64, y1 float64, z1 float64, x2 float64, y2 float64, z2 float64, wantfeed float64) {
     epsilon := 0.00001
 
-    feed := opt.FeedRate(Toolpoint{x1,y1,z1}, Toolpoint{x2,y2,z2})
+    feed := opt.FeedRate(Toolpoint{x1,y1,z1, CuttingFeed}, Toolpoint{x2,y2,z2, CuttingFeed})
 
     if math.Abs(feed-wantfeed) > epsilon {
         t.Errorf("feed rate from (%f,%f,%f) to (%f,%f,%f) should be %f, got %f", x1,y1,z1, x2,y2,z2, wantfeed, feed)

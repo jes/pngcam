@@ -14,12 +14,12 @@ func TestToolpaths(t *testing.T) {
 
     seg1 := ToolpathSegment{
         points: []Toolpoint{
-            {0,0,0},
-            {1,1,0},
-            {0,1,0},
-            {0,1,-10},
-            {0,10,-10},
-            {0,10,0},
+            {0,0,0,CuttingFeed},
+            {1,1,0,CuttingFeed},
+            {0,1,0,CuttingFeed},
+            {0,1,-10,CuttingFeed},
+            {0,10,-10,CuttingFeed},
+            {0,10,0,CuttingFeed},
         },
     }
     gcode1 := seg1.ToGcode(opt)
@@ -35,12 +35,12 @@ G1 X0.0000 Y10.0000 Z0.0000 F10000
 
     seg2 := ToolpathSegment{
         points: []Toolpoint{
-            {20,0,0},
-            {21,1,0},
-            {20,1,0},
-            {20,1,-10},
-            {20,10,-10},
-            {20,10,0},
+            {20,0,0,CuttingFeed},
+            {21,1,0,CuttingFeed},
+            {20,1,0,CuttingFeed},
+            {20,1,-10,CuttingFeed},
+            {20,10,-10,CuttingFeed},
+            {20,10,0,CuttingFeed},
         },
     }
     gcode2 := seg2.ToGcode(opt)
