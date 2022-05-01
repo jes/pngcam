@@ -186,8 +186,7 @@ func (m *ToolpointsMap) PlotPoint(x, y, z float64) {
     opt := m.options
     tool := opt.tool
 
-    // pretend tool is 1px larger so that we don't leave tall spikes between rows
-    r := tool.Radius() + opt.x_MmPerPx
+    r := tool.Radius()
 
     toolRadiusSqr := tool.Radius()*tool.Radius()
 
