@@ -82,7 +82,7 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
     }
 }
 
-func (opt Options) MmToPx(x, y float64) (int, int) {
+func (opt *Options) MmToPx(x, y float64) (int, int) {
     return int(x / opt.x_MmPerPx), int(-y / opt.y_MmPerPx) + opt.heightPx-1
 }
 
