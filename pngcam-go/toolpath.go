@@ -97,7 +97,7 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
     for i := range seg.points {
         p := seg.points[i]
         feedRate := opt.rapidFeed
-        if p.feed == CuttingFeed {
+        if p.feed == CuttingFeed && i>0 {
             feedRate = opt.FeedRate(seg.points[i-1], p)
         }
         fmt.Fprintf(&gcode, "G1 X%.04f Y%.04f Z%.04f F%g\n", p.x+opt.xOffset, p.y+opt.yOffset, p.z+opt.zOffset, feedRate)
