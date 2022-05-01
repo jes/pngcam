@@ -166,6 +166,12 @@ func (seg *ToolpathSegment) RampEntry() ToolpathSegment {
             continue
         }
 
+        // don't ramp on tiny movements
+        if dzLast < minRampDistance {
+            newseg.Append(p)
+            continue
+        }
+
         // TODO: when the next-next moves are in the same xy direction (but,
         // for example, different Z) then we can consider it as well to see if
         // it provides clearance for a longer ramp
