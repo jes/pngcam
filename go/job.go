@@ -83,7 +83,7 @@ func (j *Job) MakeToolpath() {
     y := zero
 
     if !opt.quiet {
-        fmt.Fprintf(os.Stderr, "Generating path: 0%")
+        fmt.Fprintf(os.Stderr, "Generating path: 0%%")
     }
 
     for x >= zero && y >= zero && x < xLimit && y < yLimit {
