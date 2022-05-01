@@ -22,6 +22,9 @@ func TestHeightmap(t *testing.T) {
 
         tool: tool,
         stockToLeave: 0,
+
+        x_MmPerPx: 1,
+        y_MmPerPx: 1,
     }
 
     heightmap, err := OpenHeightmapImage("../t/data/klingon-dagger.png", &opt)
