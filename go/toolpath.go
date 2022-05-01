@@ -367,8 +367,8 @@ func (tp *Toolpath) RapidPath(a, b Toolpoint, opt Options) ToolpathSegment {
     seg.Append(Toolpoint{b.x, b.y, opt.safeZ, RapidFeed})
 
     // rapid down to safe Z above?
-    if b.z+opt.safeZ < opt.safeZ {
-        seg.Append(Toolpoint{b.x, b.y, b.z+opt.safeZ, RapidFeed})
+    if b.z+opt.stepDown < opt.safeZ {
+        seg.Append(Toolpoint{b.x, b.y, b.z+opt.stepDown, RapidFeed})
     }
 
     return seg
