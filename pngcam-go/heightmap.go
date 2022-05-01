@@ -175,9 +175,10 @@ func (m *ToolpointsMap) WritePNG(path string) {
 }
 
 func (m *ToolpointsMap) PlotPixel(x, y, z float64) {
-    curZ := m.GetMm(x, y)
+    px,py := m.options.MmToPx(x,y)
+    curZ := m.GetPx(px, py)
     if math.IsNaN(curZ) || z < curZ {
-        m.SetMm(x, y, z)
+        m.SetPx(px, py, z)
     }
 }
 
