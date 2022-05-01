@@ -58,14 +58,16 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 
     maxDepth := belowBottomDepth
 
+    toolRadiusSqr := tool.Radius()*tool.Radius()
+
     for sy := -tool.Radius(); sy <= tool.Radius(); sy += opt.y_MmPerPx {
         for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
-            r := math.Sqrt(sx*sx + sy*sy)
-            if r > tool.Radius() {
+            rSqr := sx*sx + sy*sy
+            if rSqr > toolRadiusSqr {
                 continue
             }
 
-            z := opt.stockToLeave - tool.HeightAtRadius(r)
+            z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
 
             if !opt.cutBelowBottom || !hm.IsBottom(x+sx, y+sy) {
                 d := z + hm.GetDepth(x+sx, y+sy)
@@ -186,14 +188,15 @@ func (m *ToolpointsMap) PlotPoint(x, y, z float64) {
     // pretend tool is 1px larger so that we don't leave tall spikes between rows
     r := tool.Radius() + opt.x_MmPerPx
 
+    toolRadiusSqr := tool.Radius()*tool.Radius()
+
     for sy := -r; sy <= r; sy += opt.y_MmPerPx {
         for sx := -r; sx <= r; sx += opt.x_MmPerPx {
-            r := math.Sqrt(sx*sx + sy*sy)
-            if r > tool.Radius() {
+            rSqr := sx*sx + sy*sy
+            if rSqr > toolRadiusSqr {
                 continue
             }
-
-            zOffset := tool.HeightAtRadius(r)
+            zOffset := tool.HeightAtRadiusSqr(rSqr)
             m.PlotPixel(x+sx, y+sy, z+zOffset)
         }
     }

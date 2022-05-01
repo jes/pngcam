@@ -8,6 +8,7 @@ import (
 type Tool interface {
     Radius() float64
     HeightAtRadius(float64) float64
+    HeightAtRadiusSqr(float64) float64
 }
 
 type BallEndMill struct { radius float64 }
@@ -27,15 +28,21 @@ func (t *BallEndMill) Radius() float64 { return t.radius }
 func (t *FlatEndMill) Radius() float64 { return t.radius }
 
 func (t *BallEndMill) HeightAtRadius(r float64) float64 {
-    if r > t.radius {
+    return t.HeightAtRadiusSqr(r*r)
+}
+func (t *BallEndMill) HeightAtRadiusSqr(rSqr float64) float64 {
+    if rSqr > t.radius*t.radius {
         return math.Inf(1)
     }
 
-    return t.radius - math.Sqrt(t.radius*t.radius - r*r);
+    return t.radius - math.Sqrt(t.radius*t.radius - rSqr);
 }
 
 func (t *FlatEndMill) HeightAtRadius(r float64) float64 {
-    if r > t.radius {
+    return t.HeightAtRadiusSqr(r*r)
+}
+func (t *FlatEndMill) HeightAtRadiusSqr(rSqr float64) float64 {
+    if rSqr > t.radius*t.radius {
         return math.Inf(1)
     }
 
