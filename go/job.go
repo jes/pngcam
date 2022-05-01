@@ -127,21 +127,27 @@ func (j *Job) MakeToolpath() {
 }
 
 func (j *Job) Gcode() string {
+    opt := j.options
+
     path := j.Roughing()
 
-    if (!j.options.roughingOnly) {
+    if !opt.roughingOnly {
         path.AppendToolpath(j.Finishing())
     }
 
-    gcode := path.ToGcode(*j.options)
-    cycleTime := path.CycleTime(*j.options)
+    if opt.rampEntry {
+        path = path.RampEntry(*opt)
+    }
+
+    gcode := path.ToGcode(*opt)
+    cycleTime := path.CycleTime(*opt)
 
     if j.writeStock != nil {
         j.writeStock.PlotToolpath(path)
-        j.writeStock.WritePNG(j.options.writeStockPath)
+        j.writeStock.WritePNG(opt.writeStockPath)
     }
 
-    if !j.options.quiet {
+    if !opt.quiet {
         fmt.Fprintf(os.Stderr, "Cycle time estimate: %g secs\n", cycleTime)
     }
 

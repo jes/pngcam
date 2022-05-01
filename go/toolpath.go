@@ -66,7 +66,7 @@ func (seg *ToolpathSegment) Simplified() ToolpathSegment {
 
     prev := seg.points[1]
 
-    for i := 2 ; i < len(seg.points); i++ {
+    for i := 2; i < len(seg.points); i++ {
         first := newseg.points[len(newseg.points)-1]
         cur := seg.points[i]
 
@@ -94,8 +94,7 @@ func (seg *ToolpathSegment) Simplified() ToolpathSegment {
 func (seg *ToolpathSegment) ToGcode(opt Options) string {
     gcode := strings.Builder{}
 
-    // start at i=1 because we assume we're starting from point 0
-    for i := 1; i < len(seg.points); i++ {
+    for i := range seg.points {
         p := seg.points[i]
         feedRate := opt.rapidFeed
         if p.feed == CuttingFeed {
@@ -131,6 +130,92 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
     return &tp
 }
 
+func (seg *ToolpathSegment) RampEntry() ToolpathSegment {
+    if len(seg.points) <= 2 {
+        return *seg
+    }
+
+    newseg := NewToolpathSegment()
+
+    // when a toolpoint moves down in Z, at more than 30 degrees, ramp it along a straight line going along subsequent
+    // segments; range for line can be found by walking along segments that are in a straight line, until we reach a Z
+    // point that is halfway between current Z and target Z
+
+    maxPlungeAngle := 30 * math.Pi/180 // radians from horizontal
+    minRampDistance := 0.01 // avoid dividing by 0
+
+    for i := 1; i < len(seg.points)-1; i++ {
+        last := seg.points[i-1]
+        p := seg.points[i]
+        next := seg.points[i+1]
+
+        // don't ramp on rapids
+        if p.feed == RapidFeed {
+            newseg.Append(p)
+            continue
+        }
+
+        dxLast := p.x - last.x
+        dyLast := p.y - last.y
+        dzLast := p.z - last.z
+        dxyLast := math.Sqrt(dxLast*dxLast + dyLast*dyLast)
+
+        plungeAngle := math.Atan2(-dzLast, dxyLast)
+        if plungeAngle < maxPlungeAngle { // already within allowable range
+            newseg.Append(p)
+            continue
+        }
+
+        // TODO: when the next-next moves are in the same xy direction (but,
+        // for example, different Z) then we can consider it as well to see if
+        // it provides clearance for a longer ramp
+        dxNext := next.x - p.x
+        dyNext := next.y - p.y
+        dzNext := next.z - p.z
+        dxyNext := math.Sqrt(dxNext*dxNext + dyNext*dyNext)
+
+        if dxyNext < minRampDistance { // not enough room
+            newseg.Append(p)
+            continue
+        }
+
+        // now we need to replace p with 2 horizontal moves going downwards at
+        // maxPlungeAngle; the first move goes in the direction of p => next,
+        // and the second one goes in the opposite direction, to land at p;
+        // if there is not enough horizontal distance between p and next then
+        // we just ramp in whatever distance there is and accept the overly-
+        // steep angle (should we instead do multiple ramps?)
+
+        // the height we need to go down is dzLast, and we're starting from
+        // last so the first leg goes down to z=p.z-dzLast/2 and the second leg
+        // ends up at p, so we'll just leave p unchanged for that
+
+        // how steep is the next leg of the toolpath?
+        availableRampAngle := math.Atan2(dzNext, dxyNext)
+
+        // how steep would our ramp need to be to finish before passing the next point?
+        impliedAvailableRampAngle := math.Atan2(-dzLast/2, dxyNext)
+
+        // use whichever limit forces the ramp angle to be steepest, so that
+        // we don't exceed any limit
+        rampAngle := maxPlungeAngle
+        if availableRampAngle > rampAngle { rampAngle = availableRampAngle }
+        if impliedAvailableRampAngle > rampAngle { rampAngle = impliedAvailableRampAngle }
+
+        dxyRamp := -(dzLast/2) / math.Tan(rampAngle)
+        k := dxyRamp / dxyNext
+        dxRamp := k * dxNext
+        dyRamp := k * dyNext
+
+        newseg.Append(Toolpoint{last.x+dxRamp, last.y+dyRamp, p.z-dzLast/2, CuttingFeed})
+        newseg.Append(p)
+    }
+
+    newseg.Append(seg.points[len(seg.points)-1])
+
+    return newseg
+}
+
 func (seg *ToolpathSegment) CycleTime(opt Options) float64 {
     cycleTime := 0.0
 
@@ -162,6 +247,14 @@ func (tp *Toolpath) Simplified() *Toolpath {
     for i := range tp.segments {
         newtp.Append(tp.segments[i].Simplified())
     }
+
+    return &newtp
+}
+
+func (tp *Toolpath) RampEntry(opt Options) *Toolpath {
+    newtp := NewToolpath()
+
+    newtp.Append(tp.AsOneSegment(opt).RampEntry())
 
     return &newtp
 }
@@ -239,9 +332,6 @@ func (tp *Toolpath) AsOneSegment(opt Options) *ToolpathSegment {
         if p0.z+opt.safeZ < opt.safeZ {
             seg.Append(Toolpoint{p0.x, p0.y, p0.z+opt.safeZ, RapidFeed})
         }
-
-        // feed down to start height
-        seg.Append(Toolpoint{p0.x, p0.y, p0.z, CuttingFeed})
 
         // move through the rest of the segment
         seg.AppendSegment(&tp.segments[i])
