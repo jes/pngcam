@@ -107,10 +107,10 @@ func (j *Job) MakeToolpath() {
         pct := 0.0
         if opt.direction == Horizontal {
             y += opt.stepOver
-            pct = float64(100 * y) / opt.height
+            pct = float64(100 * (y-zero)) / (yLimit-zero)
         } else {
             x += opt.stepOver
-            pct = float64(100 * x) / opt.width
+            pct = float64(100 * (x-zero)) / (xLimit-zero)
         }
 
         xStep = -xStep
