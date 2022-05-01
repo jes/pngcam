@@ -247,7 +247,7 @@ func (j *Job) CombineSegments(tp *Toolpath) *Toolpath {
         rapidPath := tp.RapidPath(prev, cur, *opt)
         deepestZ := prev.z
         if cur.z < deepestZ { deepestZ = cur.z }
-        cutPath := j.CutPath(prev, cur, deepestZ)
+        cutPath := j.CutPath(prev, cur, deepestZ+1) // XXX: is +1 what we want?
 
         // when we have a cutting path that is faster than the rapid path, use it instead
         // TODO: when cycle time estimates are more accurate, lose the factor of 10
