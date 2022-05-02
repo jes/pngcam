@@ -150,7 +150,7 @@ func (m *ToolpointsMap) GetPx(x, y int) float64 {
 	return m.height[y*m.w+x]
 }
 
-func (m *ToolpointsMap) WritePNG(path string) {
+func (m *ToolpointsMap) WritePNG(path string) error {
 	m2 := NewToolpointsMap(m.w, m.h, m.options, 0)
 
 	for y := 0; y < m.h; y++ {
@@ -184,9 +184,13 @@ func (m *ToolpointsMap) WritePNG(path string) {
 		}
 	}
 
-	out, _ := os.Create(path)
+	out, err := os.Create(path)
+	if err != nil {
+		return err
+	}
 	png.Encode(out, img)
 	out.Close()
+	return err
 }
 
 func (m *ToolpointsMap) PlotPixel(x, y, z float64) {

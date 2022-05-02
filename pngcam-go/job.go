@@ -148,7 +148,10 @@ func (j *Job) Gcode() string {
 
 	if j.writeStock != nil {
 		j.writeStock.PlotToolpath(path)
-		j.writeStock.WritePNG(opt.writeStockPath)
+		err := j.writeStock.WritePNG(opt.writeStockPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "write %s: %v\n", opt.writeStockPath, err)
+		}
 	}
 
 	if !opt.quiet {
