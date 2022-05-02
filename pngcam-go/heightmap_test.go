@@ -1,48 +1,48 @@
 package main
 
 import (
-    "testing"
+	"testing"
 )
 
 func TestHeightmap(t *testing.T) {
-    tool, err := NewTool("ball", 10)
-    if err != nil {
-        t.Errorf("can't create ball tool: %v", err)
-    }
+	tool, err := NewTool("ball", 10)
+	if err != nil {
+		t.Errorf("can't create ball tool: %v", err)
+	}
 
-    opt := Options{
-        width: 232,
-        height: 650,
-        depth: 10,
+	opt := Options{
+		width:  232,
+		height: 650,
+		depth:  10,
 
-        stepOver: 10,
-        stepDown: 1,
+		stepOver: 10,
+		stepDown: 1,
 
-        direction: Horizontal,
+		direction: Horizontal,
 
-        tool: tool,
-        stockToLeave: 0,
+		tool:         tool,
+		stockToLeave: 0,
 
-        x_MmPerPx: 1,
-        y_MmPerPx: 1,
-    }
+		x_MmPerPx: 1,
+		y_MmPerPx: 1,
+	}
 
-    heightmap, err := OpenHeightmapImage("../t/data/klingon-dagger.png", &opt)
-    if err != nil {
-        t.Errorf("can't open image: %v", err)
-    }
+	heightmap, err := OpenHeightmapImage("../t/data/klingon-dagger.png", &opt)
+	if err != nil {
+		t.Errorf("can't open image: %v", err)
+	}
 
-    toolpointsmap := heightmap.ToToolpointsMap()
-    for y := 0; y < toolpointsmap.h; y += int(opt.stepOver) {
-        for x := 0; x < toolpointsmap.w; x++ {
-            z := toolpointsmap.GetPx(x, y)
-            if z < -opt.depth {
-                t.Errorf("depth below bottom: %v,%v,%v", x,y,z)
-            }
+	toolpointsmap := heightmap.ToToolpointsMap()
+	for y := 0; y < toolpointsmap.h; y += int(opt.stepOver) {
+		for x := 0; x < toolpointsmap.w; x++ {
+			z := toolpointsmap.GetPx(x, y)
+			if z < -opt.depth {
+				t.Errorf("depth below bottom: %v,%v,%v", x, y, z)
+			}
 
-            if z > 0 {
-                t.Errorf("depth above top: %v,%v,%v", x,y,z)
-            }
-        }
-    }
+			if z > 0 {
+				t.Errorf("depth above top: %v,%v,%v", x, y, z)
+			}
+		}
+	}
 }
