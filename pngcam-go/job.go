@@ -176,6 +176,8 @@ func (j *Job) Preamble() string {
 
 	fmt.Fprintf(&gcode, "M3 S%g\n", opt.rpm)
 
+	fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ+opt.zOffset, opt.rapidFeed)
+
 	return gcode.String()
 }
 
