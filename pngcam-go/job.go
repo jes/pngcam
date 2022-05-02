@@ -249,6 +249,20 @@ func (j *Job) CombineSegments(tp *Toolpath) *Toolpath {
         if cur.z < deepestZ { deepestZ = cur.z }
         cutPath := j.CutPath(prev, cur, deepestZ)
 
+        // as well as a straight line from prev to cur, try axis-aligned lines
+        // in x-first and y-first configuration
+        xCur := Toolpoint{x: cur.x, y: prev.y, z: math.Max(deepestZ, j.toolpoints.GetMm(cur.x,prev.y))}
+        yCur := Toolpoint{x: prev.x, y: cur.y, z: math.Max(deepestZ, j.toolpoints.GetMm(prev.x,cur.y))}
+        xYCutPath := j.CutPath(prev, xCur, deepestZ)
+        xYCutPath2 := j.CutPath(xCur, cur, deepestZ)
+        xYCutPath.AppendSegment(&xYCutPath2)
+        yXCutPath := j.CutPath(prev, yCur, deepestZ)
+        yXCutPath2 := j.CutPath(yCur, cur, deepestZ)
+        yXCutPath.AppendSegment(&yXCutPath2)
+
+        if xYCutPath.CycleTime(*opt) < cutPath.CycleTime(*opt) { cutPath = xYCutPath }
+        if yXCutPath.CycleTime(*opt) < cutPath.CycleTime(*opt) { cutPath = yXCutPath }
+
         // when we have a cutting path that is faster than the rapid path, use it instead
         // TODO: when cycle time estimates are more accurate, lose the factor of 10
         if cutPath.CycleTime(*opt) < 10*rapidPath.CycleTime(*opt) {
