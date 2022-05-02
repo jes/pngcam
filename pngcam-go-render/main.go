@@ -12,6 +12,7 @@ func main() {
 	height := flag.Int("height", 400, "Set the height of the part in pixels.")
 	png := flag.String("png", "", "Output PNG filename.")
 	quiet := flag.Bool("quiet", false, "Suppress output of dimensions, resolutions, and progress.")
+	bottom := flag.Bool("bottom", false, "Draw the bottom side instead of the top.")
 	cpuProfile := flag.String("cpuprofile", "", "Write CPU profile to file.")
 
 	flag.Usage = func() {
@@ -46,6 +47,7 @@ func main() {
 	opt := Options{
 		width:   *width,
 		height:  *height,
+		bottom:  *bottom,
 		quiet:   *quiet,
 		stlFile: stlFile,
 		pngFile: *png,

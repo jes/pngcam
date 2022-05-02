@@ -42,6 +42,11 @@ func NewRenderer(opt *Options) (*Renderer, error) {
 }
 
 func (r *Renderer) ProcessMesh() {
+	// rotate to the required side
+	if r.options.bottom {
+		r.mesh.Rotate(stl.Vec3{0, 0, 0}, stl.Vec3{0, 1, 0}, stl.Pi)
+	}
+
 	var min, max stl.Vec3
 	min[X] = float32(math.Inf(1))
 	min[Y] = float32(math.Inf(1))
