@@ -207,6 +207,14 @@ func (seg *ToolpathSegment) RampEntry() ToolpathSegment {
         dxRamp := k * dxNext
         dyRamp := k * dyNext
 
+        // if splitting this move into 2 ramps causes the second ramp to be steeper
+        // than the original move, then just keep the original move instead
+        plungeAngle2 := math.Atan2(-dzLast/2, math.Abs(dxyRamp)-dxyLast)
+        if plungeAngle2 > plungeAngle {
+            newseg.Append(p)
+            continue
+        }
+
         newseg.Append(Toolpoint{last.x+dxRamp, last.y+dyRamp, p.z-dzLast/2, CuttingFeed})
         newseg.Append(p)
     }
