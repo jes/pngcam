@@ -5,7 +5,7 @@ import (
     "testing"
 )
 
-func TestBall(t *testing.T) {
+func TestTool(t *testing.T) {
     tool, err := NewTool("ball", 10)
     if err != nil {
         t.Errorf("can't create ball tool: %v", err)
