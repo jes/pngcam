@@ -99,7 +99,17 @@ func (r *Renderer) Render() {
 	for i := range r.mesh.Triangles {
 		t := r.mesh.Triangles[i]
 		r.heightmap.DrawTriangle(r.MmToPx(t.Vertices[0]), r.MmToPx(t.Vertices[1]), r.MmToPx(t.Vertices[2]))
+
+		if !r.options.quiet {
+			pct := 100.0 * float64(i) / float64(len(r.mesh.Triangles))
+			fmt.Fprintf(os.Stderr, "   \rDrawing triangles: %.0f%%", pct)
+		}
 	}
+
+	if !r.options.quiet {
+		fmt.Fprintf(os.Stderr, "   \rDrawing triangles: done.\n")
+	}
+
 	err := r.heightmap.WritePNG(r.options.pngFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "write %s: %v\n", r.options.pngFile, err)
