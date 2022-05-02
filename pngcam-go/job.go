@@ -193,10 +193,10 @@ func (j *Job) Roughing() *Toolpath {
     path := NewToolpath()
 
     for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
-        path.AppendToolpath(j.RoughingLevel(z).Simplified())
+        path.AppendToolpath(j.RoughingLevel(z).Simplified().Sorted())
     }
 
-    return path.Sorted()
+    return &path
 }
 
 func (j *Job) RoughingLevel(z float64) *Toolpath {
