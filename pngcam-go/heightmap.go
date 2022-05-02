@@ -151,13 +151,24 @@ func (m *ToolpointsMap) GetPx(x, y int) float64 {
 }
 
 func (m *ToolpointsMap) WritePNG(path string) {
+    m2 := NewToolpointsMap(m.w, m.h, m.options, 0)
+
+    for y := 0; y < m.h; y++ {
+        for x := 0; x < m.w; x++ {
+            xMm, yMm := m.options.PxToMm(x,y)
+            if m.height[y*m.w+x] < 0 {
+                m2.PlotToolShape(xMm, yMm, m.height[y*m.w + x])
+            }
+        }
+    }
+
     img := image.NewRGBA(image.Rect(0, 0, m.w, m.h))
 
     for y := 0; y < m.h; y++ {
         for x := 0; x < m.w; x++ {
             n := y*m.w + x
 
-            z := m.height[n]
+            z := m2.height[n]
             if z > 0 { z = 0 }
             if z < -m.options.depth { z = -m.options.depth }
             brightness := int(16777215 * (z/m.options.depth+1))
@@ -182,7 +193,7 @@ func (m *ToolpointsMap) PlotPixel(x, y, z float64) {
     }
 }
 
-func (m *ToolpointsMap) PlotPoint(x, y, z float64) {
+func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
     opt := m.options
     tool := opt.tool
 
@@ -215,7 +226,7 @@ func (m *ToolpointsMap) PlotLine(x1,y1,z1, x2,y2,z2 float64) {
 
     // TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
     for k := 0.0; k <= xyDist; k += m.options.x_MmPerPx {
-        m.PlotPoint(x1 + xStep*k, y1 + yStep*k, z1 + zStep*k)
+        m.PlotPixel(x1 + xStep*k, y1 + yStep*k, z1 + zStep*k)
     }
 }
 
