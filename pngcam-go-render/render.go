@@ -34,7 +34,11 @@ func NewRenderer(opt *Options) (*Renderer, error) {
 
 	r.ProcessMesh()
 
-	fmt.Fprintf(os.Stderr, "%g by %g mm.\n", r.mmWidth, r.mmHeight)
+	if !opt.quiet {
+		fmt.Fprintf(os.Stderr, "%dx%d px depth map. %gx%g mm work piece.\n", opt.width, opt.height, r.mmWidth, r.mmHeight)
+		fmt.Fprintf(os.Stderr, "Work piece is %g tall in Z axis.\n", r.mmDepth)
+		fmt.Fprintf(os.Stderr, "X resolution is %g px/mm. Y resolution is %g px/mm.\n", float32(opt.width)/r.mmWidth, float32(opt.height)/r.mmHeight)
+	}
 
 	r.heightmap = NewHeightmap(opt)
 
