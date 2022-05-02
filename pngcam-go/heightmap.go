@@ -193,8 +193,12 @@ func (m *ToolpointsMap) WritePNG(path string) error {
 	return err
 }
 
-func (m *ToolpointsMap) PlotPixel(x, y, z float64) {
+func (m *ToolpointsMap) PlotPixelMm(x, y, z float64) {
 	px, py := m.options.MmToPx(x, y)
+	m.PlotPixelPx(px, py, z)
+}
+
+func (m *ToolpointsMap) PlotPixelPx(px, py int, z float64) {
 	curZ := m.GetPx(px, py)
 	if math.IsNaN(curZ) || z < curZ {
 		m.SetPx(px, py, z)
@@ -205,18 +209,25 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 	opt := m.options
 	tool := opt.tool
 
+	xPx, yPx := opt.MmToPx(x, y)
+
 	r := tool.Radius()
+	rPxX := int(r/opt.x_MmPerPx) + 1
+	rPxY := int(r/opt.y_MmPerPx) + 1
 
-	toolRadiusSqr := tool.Radius() * tool.Radius()
+	toolRadiusSqr := r * r
 
-	for sy := -r; sy <= r; sy += opt.y_MmPerPx {
-		for sx := -r; sx <= r; sx += opt.x_MmPerPx {
-			rSqr := sx*sx + sy*sy
+	for sy := -rPxY; sy <= rPxY; sy++ {
+		for sx := -rPxX; sx <= rPxX; sx++ {
+			sxMm := float64(sx) * opt.x_MmPerPx
+			syMm := float64(sy) * opt.x_MmPerPx
+
+			rSqr := sxMm*sxMm + syMm*syMm
 			if rSqr > toolRadiusSqr {
 				continue
 			}
 			zOffset := tool.HeightAtRadiusSqr(rSqr)
-			m.PlotPixel(x+sx, y+sy, z+zOffset)
+			m.PlotPixelPx(xPx+sx, yPx+sy, z+zOffset)
 		}
 	}
 }
@@ -234,7 +245,7 @@ func (m *ToolpointsMap) PlotLine(x1, y1, z1, x2, y2, z2 float64) {
 
 	// TODO: might be wrong if x_MmPerPx is substantially different to y_MmPerPx
 	for k := 0.0; k <= xyDist; k += m.options.x_MmPerPx {
-		m.PlotPixel(x1+xStep*k, y1+yStep*k, z1+zStep*k)
+		m.PlotPixelMm(x1+xStep*k, y1+yStep*k, z1+zStep*k)
 	}
 }
 
