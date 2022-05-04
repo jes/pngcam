@@ -309,7 +309,7 @@ func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
 		// up by the "nominal deviation" on long travel moves
 		r1 := j.options.tool.Radius()
 		r2 := j.options.stepOver / 2
-		deepestZ += math.Sqrt(r1*r1 - r2*r2)
+		deepestZ += r1 - math.Sqrt(r1*r1-r2*r2)
 	}
 
 	dx /= dist
