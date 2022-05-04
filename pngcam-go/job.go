@@ -302,15 +302,13 @@ func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
 	dy := b.y - a.y
 	dist := math.Sqrt(dx*dx + dy*dy)
 
-	if dist > 2*j.options.stepOver {
-		// on long travels, we would take unsightly gouges out of the surface
-		// pattern, due to the stepOver, even though we technically keep the
-		// tool on the surface of the model; to mitigate this, we lift the tool
-		// up by the "nominal deviation" on long travel moves
-		r1 := j.options.tool.Radius()
-		r2 := j.options.stepOver / 2
-		deepestZ += r1 - math.Sqrt(r1*r1-r2*r2)
-	}
+	// on long travels, we would take unsightly gouges out of the surface
+	// pattern, due to the stepOver, even though we technically keep the
+	// tool on the surface of the model; to mitigate this, we lift the tool
+	// up by the "nominal deviation"
+	r1 := j.options.tool.Radius()
+	r2 := j.options.stepOver / 2
+	deviation := r1 - math.Sqrt(r1*r1-r2*r2)
 
 	dx /= dist
 	dy /= dist
@@ -330,8 +328,10 @@ func (j *Job) CutPath(a, b Toolpoint, deepestZ float64) ToolpathSegment {
 			z = deepestZ
 		}
 
-		seg.Append(Toolpoint{x, y, z, CuttingFeed})
+		seg.Append(Toolpoint{x, y, z + deviation, CuttingFeed})
 	}
+
+	seg.Append(b)
 
 	return seg
 }
