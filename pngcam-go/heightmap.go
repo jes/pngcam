@@ -86,6 +86,12 @@ func (hm *HeightmapImage) GetDepth(x, y float64) float64 {
 
 	px, py := opt.MmToPx(x, y)
 
+	return hm.GetDepthPx(px, py)
+}
+
+func (hm *HeightmapImage) GetDepthPx(px, py int) float64 {
+	opt := hm.options
+
 	r, g, b, _ := hm.img.At(px, py).RGBA()
 	r /= 257
 	g /= 257
@@ -150,8 +156,16 @@ func (m *ToolpointsMap) GetPx(x, y int) float64 {
 	return m.height[y*m.w+x]
 }
 
-func (m *ToolpointsMap) WritePNG(path string) error {
+func (m *ToolpointsMap) WritePNG(path string, existingStock *HeightmapImage) error {
 	m2 := NewToolpointsMap(m.w, m.h, m.options, 0)
+	if existingStock != nil {
+		for y := 0; y < m2.h; y++ {
+			for x := 0; x < m2.w; x++ {
+				n := y*m2.w + x
+				m2.height[n] = existingStock.GetDepthPx(x, y)
+			}
+		}
+	}
 
 	for y := 0; y < m.h; y++ {
 		for x := 0; x < m.w; x++ {
