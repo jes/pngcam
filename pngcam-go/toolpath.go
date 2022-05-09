@@ -92,6 +92,16 @@ func (seg *ToolpathSegment) Simplified() ToolpathSegment {
 	return newseg
 }
 
+func (seg *ToolpathSegment) Reversed() ToolpathSegment {
+	newseg := NewToolpathSegment()
+
+	for i := len(seg.points) - 1; i >= 0; i-- {
+		newseg.points = append(newseg.points, seg.points[i])
+	}
+
+	return newseg
+}
+
 func (seg *ToolpathSegment) ToGcode(opt Options) string {
 	gcode := strings.Builder{}
 
@@ -297,6 +307,7 @@ func (tp *Toolpath) Sorted() *Toolpath {
 	for len(needsegs) > 0 {
 		minDist := math.Inf(1)
 		minIdx := 0
+		minReversed := false
 
 		for i, _ := range needsegs {
 			seg := needsegs[i]
@@ -307,12 +318,30 @@ func (tp *Toolpath) Sorted() *Toolpath {
 			if dist < minDist {
 				minDist = dist
 				minIdx = i
+				minReversed = false
+			}
+
+			// try the same segment again, but in reverse
+			n := len(seg.points) - 1
+			dx = seg.points[n].x - last.x
+			dy = seg.points[n].y - last.y
+			dz = seg.points[n].z - last.z
+			dist = math.Sqrt(dx*dx + dy*dy + dz*dz)
+			if dist < minDist {
+				minDist = dist
+				minIdx = i
+				minReversed = true
 			}
 		}
 
 		minSeg := needsegs[minIdx]
-		last = minSeg.points[len(minSeg.points)-1]
-		newtp.Append(*minSeg)
+		if minReversed {
+			last = minSeg.points[0]
+			newtp.Append(minSeg.Reversed())
+		} else {
+			last = minSeg.points[len(minSeg.points)-1]
+			newtp.Append(*minSeg)
+		}
 
 		delete(needsegs, minIdx)
 	}
