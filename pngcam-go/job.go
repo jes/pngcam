@@ -148,7 +148,11 @@ func (j *Job) Gcode() string {
 
 	if j.writeStock != nil {
 		j.writeStock.PlotToolpath(path)
-		err := j.writeStock.WritePNG(opt.writeStockPath, j.readStock.hm)
+		var hm *HeightmapImage
+		if j.readStock != nil {
+			hm = j.readStock.hm
+		}
+		err := j.writeStock.WritePNG(opt.writeStockPath, hm)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "write %s: %v\n", opt.writeStockPath, err)
 		}
