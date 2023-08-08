@@ -145,6 +145,8 @@ func (hm *Heightmap) DrawTriangleOnOneLine(a, b, c [3]float32, ycoord int) {
 	}
 
 	// 1. work out where the outline of the triangle is
+	// TODO: instead of IterateLine and perimeterCb, we should be able to jump
+	// directly to y=0 and work out what the X coordinate is
 	perimeterCb := func(x, y int, z float32) {
 		if y != 0 {
 			return
