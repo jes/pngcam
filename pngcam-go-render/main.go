@@ -14,6 +14,7 @@ func main() {
 	quiet := flag.Bool("quiet", false, "Suppress output of dimensions, resolutions, and progress.")
 	bottom := flag.Bool("bottom", false, "Draw the bottom side instead of the top.")
 	cpuProfile := flag.String("cpuprofile", "", "Write CPU profile to file.")
+	rotary := flag.Bool("rotary", false, "Rotary carving")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage:\n")
@@ -51,6 +52,7 @@ func main() {
 		quiet:   *quiet,
 		stlFile: stlFile,
 		pngFile: *png,
+		rotary:  *rotary,
 	}
 
 	renderer, err := NewRenderer(&opt)

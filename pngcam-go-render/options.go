@@ -7,4 +7,5 @@ type Options struct {
 	quiet   bool
 	stlFile string
 	pngFile string
+	rotary  bool
 }

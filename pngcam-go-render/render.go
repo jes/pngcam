@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/hschendel/stl"
 	"math"
 	"os"
+
+	"github.com/hschendel/stl"
 )
 
 type Renderer struct {
@@ -89,21 +90,27 @@ func (r *Renderer) ProcessMesh() {
 	r.mmDepth = max[Z] - min[Z]
 
 	// translate to origin
-	min[X] = -min[X]
-	min[Y] = -min[Y]
-	min[Z] = -min[Z]
-	r.mesh.Translate(min)
+	if r.options.rotary {
+		min[X] = -min[X]
+		min[Y] = -min[Y] - r.mmHeight/2
+		min[Z] = -min[Z] - r.mmDepth/2
+		r.mesh.Translate(min)
+
+		// TODO: for rotary, mmDepth should be based on radius rather than Z coord
+		r.mmDepth /= 2
+	} else {
+		min[X] = -min[X]
+		min[Y] = -min[Y]
+		min[Z] = -min[Z]
+		r.mesh.Translate(min)
+	}
 }
 
 func (r *Renderer) Render() {
-	for i := range r.mesh.Triangles {
-		t := r.mesh.Triangles[i]
-		r.heightmap.DrawTriangle(r.MmToPx(t.Vertices[0]), r.MmToPx(t.Vertices[1]), r.MmToPx(t.Vertices[2]))
-
-		if !r.options.quiet {
-			pct := 100.0 * float64(i) / float64(len(r.mesh.Triangles))
-			fmt.Fprintf(os.Stderr, "   \rDrawing triangles: %.0f%%", pct)
-		}
+	if r.options.rotary {
+		r.RenderRotary()
+	} else {
+		r.RenderFlat()
 	}
 
 	if !r.options.quiet {
@@ -116,10 +123,46 @@ func (r *Renderer) Render() {
 	}
 }
 
+func (r *Renderer) RenderFlat() {
+	for i := range r.mesh.Triangles {
+		t := r.mesh.Triangles[i]
+		r.heightmap.DrawTriangle(r.MmToPx(t.Vertices[0]), r.MmToPx(t.Vertices[1]), r.MmToPx(t.Vertices[2]))
+
+		if !r.options.quiet {
+			pct := 100.0 * float64(i) / float64(len(r.mesh.Triangles))
+			fmt.Fprintf(os.Stderr, "   \rDrawing triangles: %.0f%%", pct)
+		}
+	}
+}
+
+func (r *Renderer) RenderRotary() {
+	for ypx := 0; ypx < r.options.height; ypx += 1 {
+		angle := 2 * stl.Pi * float64(ypx) / float64(r.options.height)
+
+		r.mesh.Rotate(stl.Vec3{0, 0, 0}, stl.Vec3{1, 0, 0}, angle)
+		for i := range r.mesh.Triangles {
+			t := r.mesh.Triangles[i]
+			r.heightmap.DrawTriangleOnOneLine(r.MmToPx(t.Vertices[0]), r.MmToPx(t.Vertices[1]), r.MmToPx(t.Vertices[2]), ypx)
+		}
+		r.mesh.Rotate(stl.Vec3{0, 0, 0}, stl.Vec3{1, 0, 0}, -angle)
+
+		if !r.options.quiet {
+			pct := 100.0 * float64(ypx) / float64(r.options.height)
+			fmt.Fprintf(os.Stderr, "   \rDrawing triangles: %.0f%%", pct)
+		}
+	}
+}
+
 func (r *Renderer) MmToPx(v stl.Vec3) [3]float32 {
 	var vNew [3]float32
-	vNew[X] = v[X] * float32(r.options.width) / r.mmWidth
-	vNew[Y] = float32(r.options.height-1) - v[Y]*float32(r.options.height)/r.mmHeight
-	vNew[Z] = v[Z] / r.mmDepth
+	if r.options.rotary {
+		vNew[X] = v[X] * float32(r.options.width) / r.mmWidth
+		vNew[Y] = -v[Y] * float32(r.options.height) / r.mmHeight
+		vNew[Z] = v[Z] / r.mmDepth
+	} else {
+		vNew[X] = v[X] * float32(r.options.width) / r.mmWidth
+		vNew[Y] = float32(r.options.height-1) - v[Y]*float32(r.options.height)/r.mmHeight
+		vNew[Z] = v[Z] / r.mmDepth
+	}
 	return vNew
 }
