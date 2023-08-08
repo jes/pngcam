@@ -129,6 +129,21 @@ func (hm *Heightmap) DrawTriangleOnOneLine(a, b, c [3]float32, ycoord int) {
 	leftZ := float32(0)
 	rightZ := float32(0)
 
+	sign := func(x float32) int {
+		if x < 0 {
+			return -1
+		} else if x == 0 {
+			return 0
+		} else {
+			return 1
+		}
+	}
+	// if all 3 points are on the same side of the axis, then the triangle doesn't
+	// cross the axis, so we won't plot anything
+	if sign(a[Y]) == sign(b[Y]) && sign(a[Y]) == sign(c[Y]) {
+		return
+	}
+
 	// 1. work out where the outline of the triangle is
 	perimeterCb := func(x, y int, z float32) {
 		if y != 0 {
