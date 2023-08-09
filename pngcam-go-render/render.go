@@ -92,8 +92,8 @@ func (r *Renderer) ProcessMesh() {
 	// translate to origin
 	if r.options.rotary {
 		min[X] = -min[X]
-		min[Y] = -min[Y] - r.mmHeight/2
-		min[Z] = -min[Z] - r.mmDepth/2
+		min[Y] = 0
+		min[Z] = 0
 		r.mesh.Translate(min)
 
 		// TODO: for rotary, mmDepth should be based on radius rather than Z coord
