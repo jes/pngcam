@@ -117,7 +117,15 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
 		if p.feed == CuttingFeed && i > 0 {
 			feedRate = opt.FeedRate(seg.points[i-1], p)
 		}
+		if feedRate == opt.rapidFeed && opt.rotary {
+			// if we want the rapid feed but we're in rotary mode, we need to go back to units/min mode...
+			gcode.WriteString("G94\n")
+		}
 		fmt.Fprintf(&gcode, "G1 X%.04f %s%.04f Z%.04f F%g\n", p.x+opt.xOffset, yAxisName, p.y+opt.yOffset, p.z+opt.zOffset, feedRate)
+		if feedRate == opt.rapidFeed && opt.rotary {
+			// ...and then back into inverse time mode
+			gcode.WriteString("G93\n")
+		}
 	}
 
 	return gcode.String()

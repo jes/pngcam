@@ -66,23 +66,39 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 
 	xyDist := math.Sqrt(dx*dx + dy*dy)
 	zDist := dz
-	totalDist := math.Sqrt(xyDist*xyDist + zDist*zDist)
 
-	// TODO: calculate totalDist differently for rotary carving
+	if opt.rotary {
+		y1 := start.z * math.Sin(start.y*math.Pi/180.0)
+		y2 := end.z * math.Sin(end.y*math.Pi/180.0)
+		dy = y2 - y1
+		xyDist = math.Sqrt(dx*dx + dy*dy)
+		// TODO: this calculates the straight-line distance between the 2 points, but
+		// actually the movement follows an arc (which may be combined with X and Z
+		// moves) - ideally we would calculate the true arc length instead of the
+		// straight-line length
+	}
+
+	totalDist := math.Sqrt(xyDist*xyDist + zDist*zDist)
 
 	epsilon := 0.00001
 
-	// vertical upwards movement with no XY component: rapid feed
-	if xyDist < epsilon && zDist > 0 {
-		return opt.rapidFeed
+	// rapid feed on vertical upwards movement with no XY component
+	unitsPerMin := opt.rapidFeed
+	if xyDist >= epsilon || zDist < 0 {
+		if zDist >= 0 || math.Abs(xyDist/zDist) > math.Abs(opt.xyFeed/opt.zFeed) {
+			// XY feed is limiting factor
+			unitsPerMin = opt.xyFeed
+		} else {
+			unitsPerMin = opt.zFeed
+		}
 	}
 
-	if zDist >= 0 || math.Abs(xyDist/zDist) > math.Abs(opt.xyFeed/opt.zFeed) {
-		// XY feed is limiting factor
-		return opt.xyFeed
+	if opt.rotary {
+		// in rotary mode we use "inverse time" feed rates
+		movesPerMin := unitsPerMin / totalDist
+		return movesPerMin
 	} else {
-		// Z feed is limiting factor
-		return math.Abs(totalDist/zDist) * opt.zFeed
+		return unitsPerMin
 	}
 }
 

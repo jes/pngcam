@@ -178,9 +178,19 @@ func (j *Job) Preamble() string {
 	gcode.WriteString("G90\n") // absolute coordinates
 	gcode.WriteString("G54\n") // work coordinate system
 
+	if opt.rotary {
+		// inverse time mode, because LinuxCNC's "units per minute" mode (G94) is
+		// broken for combined linear and rotary moves
+		gcode.WriteString("G93\n")
+	}
+
 	fmt.Fprintf(&gcode, "M3 S%g\n", opt.rpm)
 
-	fmt.Fprintf(&gcode, "G1 Z%.04f F%g\n", opt.safeZ+opt.zOffset, opt.rapidFeed)
+	fmt.Fprintf(&gcode, "G0 Z%.04f\n", opt.safeZ+opt.zOffset)
+
+	if opt.rotary {
+		gcode.WriteString("G0 Y0\n")
+	}
 
 	return gcode.String()
 }
