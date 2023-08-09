@@ -30,6 +30,7 @@ func main() {
 	width := flag.Float64("width", 100, "Set the width of the image in mm.")
 	height := flag.Float64("height", 100, "Set the height of the image in mm.")
 	depth := flag.Float64("depth", 10, "Set the total depth of the part in mm.")
+	rotary := flag.Bool("rotary", false, "Rotary carving.")
 
 	cutBelowBottom := flag.Bool("deep-black", false, "Let the tool cut below the full depth if this would allow better reproduction of the non-black parts of the heightmap. Only really applicable with a ball-nose end mill.")
 	cutBeyondEdges := flag.Bool("beyond-edges", false, "Let the tool cut beyond the edges of the heightmap.")
@@ -85,6 +86,11 @@ func main() {
 	}
 	heightmapPath := args[0]
 
+	if *rotary {
+		// rotary parts are always 360 degrees around (should this be configurable? e.g. to allow partial rotation?)
+		*height = 360.0
+	}
+
 	opt := Options{
 		heightmapPath:  heightmapPath,
 		readStockPath:  *readStockPath,
@@ -99,6 +105,7 @@ func main() {
 		width:  *width,
 		height: *height,
 		depth:  *depth,
+		rotary: *rotary,
 
 		direction: dir,
 

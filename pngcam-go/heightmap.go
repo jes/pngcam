@@ -60,19 +60,43 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 
 	toolRadiusSqr := tool.Radius() * tool.Radius()
 
-	for sy := -tool.Radius(); sy <= tool.Radius(); sy += opt.y_MmPerPx {
-		for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
-			rSqr := sx*sx + sy*sy
-			if rSqr > toolRadiusSqr {
-				continue
-			}
+	if opt.rotary {
+		for sy := -180.0; sy <= 180.0; sy += opt.y_MmPerPx { // we pretend the y range of 360 degrees is 360 "millimetres"
+			for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
+				workpieceZ := hm.GetDepth(x+sx, y+sy)
+				workpieceY := workpieceZ * math.Sin(sy*math.Pi/180.0)
 
-			z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
+				rSqr := sx*sx + workpieceY*workpieceY
+				if rSqr > toolRadiusSqr {
+					continue
+				}
 
-			if !opt.cutBelowBottom || !hm.IsBottom(x+sx, y+sy) {
-				d := z + hm.GetDepth(x+sx, y+sy)
+				z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
+
+				// TODO: what about if !opt.cutBelowBottom || !hm.IsBottom(x+sx, ...) ?
+
+				// TODO: Z zero needs to be on axis, not on surface of part
+				d := z + workpieceZ
 				if d > maxDepth {
 					maxDepth = d
+				}
+			}
+		}
+	} else {
+		for sy := -tool.Radius(); sy <= tool.Radius(); sy += opt.y_MmPerPx {
+			for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
+				rSqr := sx*sx + sy*sy
+				if rSqr > toolRadiusSqr {
+					continue
+				}
+
+				z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
+
+				if !opt.cutBelowBottom || !hm.IsBottom(x+sx, y+sy) {
+					d := z + hm.GetDepth(x+sx, y+sy)
+					if d > maxDepth {
+						maxDepth = d
+					}
 				}
 			}
 		}
@@ -93,6 +117,7 @@ func (hm *HeightmapImage) GetDepthPx(px, py int) float64 {
 	opt := hm.options
 
 	r, g, b, _ := hm.img.At(px, py).RGBA()
+	// XXX: why 257?
 	r /= 257
 	g /= 257
 	b /= 257

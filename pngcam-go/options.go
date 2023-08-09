@@ -25,6 +25,7 @@ type Options struct {
 	width  float64
 	height float64
 	depth  float64
+	rotary bool
 
 	direction Direction
 
