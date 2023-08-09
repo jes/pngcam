@@ -267,6 +267,8 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 
 	toolRadiusSqr := r * r
 
+	// TODO: rotary
+
 	for sy := -rPxY; sy <= rPxY; sy++ {
 		for sx := -rPxX; sx <= rPxX; sx++ {
 			sxMm := float64(sx) * opt.x_MmPerPx
