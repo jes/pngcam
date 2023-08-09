@@ -61,12 +61,13 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 	toolRadiusSqr := tool.Radius() * tool.Radius()
 
 	if opt.rotary {
-		for sy := -180.0; sy <= 180.0; sy += opt.y_MmPerPx { // we pretend the y range of 360 degrees is 360 "millimetres"
+		for sy := -90.0; sy <= 90.0; sy += opt.y_MmPerPx { // we pretend the y range of 360 degrees is 360 "millimetres"
 			for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
-				workpieceZ := hm.GetDepth(x+sx, y+sy)
-				workpieceY := workpieceZ * math.Sin(sy*math.Pi/180.0)
+				workpieceZ := hm.GetDepth(x+sx, -y+sy) // -y because the heightmap y axis is inverted (?)
+				realY := workpieceZ * math.Sin(sy*math.Pi/180.0)
+				realZ := workpieceZ * math.Cos(sy*math.Pi/180.0)
 
-				rSqr := sx*sx + workpieceY*workpieceY
+				rSqr := sx*sx + realY*realY
 				if rSqr > toolRadiusSqr {
 					continue
 				}
@@ -75,8 +76,7 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 
 				// TODO: what about if !opt.cutBelowBottom || !hm.IsBottom(x+sx, ...) ?
 
-				// TODO: Z zero needs to be on axis, not on surface of part
-				d := z + workpieceZ
+				d := z + realZ + opt.depth
 				if d > maxDepth {
 					maxDepth = d
 				}
@@ -115,6 +115,17 @@ func (hm *HeightmapImage) GetDepth(x, y float64) float64 {
 
 func (hm *HeightmapImage) GetDepthPx(px, py int) float64 {
 	opt := hm.options
+
+	if opt.rotary {
+		// rotary parts wrap around
+		py = py % opt.heightPx
+		for py >= opt.heightPx {
+			py -= opt.heightPx
+		}
+		for py < 0 {
+			py += opt.heightPx
+		}
+	}
 
 	r, g, b, _ := hm.img.At(px, py).RGBA()
 	// XXX: why 257?

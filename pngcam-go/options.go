@@ -68,6 +68,8 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 	zDist := dz
 	totalDist := math.Sqrt(xyDist*xyDist + zDist*zDist)
 
+	// TODO: calculate totalDist differently for rotary carving
+
 	epsilon := 0.00001
 
 	// vertical upwards movement with no XY component: rapid feed
