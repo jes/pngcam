@@ -118,13 +118,7 @@ func (hm *HeightmapImage) GetDepthPx(px, py int) float64 {
 
 	if opt.rotary {
 		// rotary parts wrap around
-		py = py % opt.heightPx
-		for py >= opt.heightPx {
-			py -= opt.heightPx
-		}
-		for py < 0 {
-			py += opt.heightPx
-		}
+		py = ((py % opt.heightPx) + opt.heightPx) % opt.heightPx // https://stackoverflow.com/a/59299881
 	}
 
 	r, g, b, _ := hm.img.At(px, py).RGBA()
