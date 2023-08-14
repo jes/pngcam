@@ -219,9 +219,15 @@ func (m *ToolpointsMap) WritePNG(path string, existingStock *HeightmapImage) err
 			}
 			brightness := int(16777215 * (z/m.options.depth + 1))
 
-			img.Pix[n*4] = uint8(brightness >> 16)
-			img.Pix[n*4+1] = uint8((brightness >> 8) & 0xff)
-			img.Pix[n*4+2] = uint8(brightness & 0xff)
+			if m.options.rgb {
+				img.Pix[n*4] = uint8(brightness >> 16)
+				img.Pix[n*4+1] = uint8((brightness >> 8) & 0xff)
+				img.Pix[n*4+2] = uint8(brightness & 0xff)
+			} else {
+				img.Pix[n*4] = uint8(brightness >> 16)
+				img.Pix[n*4+1] = uint8(brightness >> 16)
+				img.Pix[n*4+2] = uint8(brightness >> 16)
+			}
 			img.Pix[n*4+3] = 255
 		}
 	}

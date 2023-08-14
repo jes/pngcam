@@ -15,6 +15,7 @@ type Options struct {
 	heightmapPath  string
 	readStockPath  string
 	writeStockPath string
+	rgb            bool
 
 	safeZ     float64
 	rapidFeed float64

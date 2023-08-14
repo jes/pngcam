@@ -40,6 +40,7 @@ func main() {
 
 	readStockPath := flag.String("read-stock", "", "Read stock heightmap from PNG file, to save cutting air in roughing passes.")
 	writeStockPath := flag.String("write-stock", "", "Write output heightmap to PNG file, to use with --read-stock.")
+	rgb := flag.Bool("rgb", false, "Use full 24-bit colour when writing output heightmap.")
 
 	maxVel := flag.Float64("max-vel", 4000, "Max. velocity in mm/min for cycle time estimation.")
 	maxAccel := flag.Float64("max-accel", 50, "Max. acceleration in mm/sec^2 for cycle time estimation.")
@@ -105,6 +106,7 @@ func main() {
 		heightmapPath:  heightmapPath,
 		readStockPath:  *readStockPath,
 		writeStockPath: *writeStockPath,
+		rgb:            *rgb,
 
 		safeZ:     *safeZ,
 		rapidFeed: *rapidFeed,
