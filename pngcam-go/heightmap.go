@@ -72,11 +72,9 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 					continue
 				}
 
-				z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
-
 				// TODO: what about if !opt.cutBelowBottom || !hm.IsBottom(x+sx, ...) ?
 
-				d := z + realZ
+				d := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr) + realZ
 				if d > maxDepth {
 					maxDepth = d
 				}
@@ -90,10 +88,8 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 					continue
 				}
 
-				z := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr)
-
 				if !opt.cutBelowBottom || !hm.IsBottom(x+sx, y+sy) {
-					d := z + hm.GetDepth(x+sx, y+sy)
+					d := opt.stockToLeave - tool.HeightAtRadiusSqr(rSqr) + hm.GetDepth(x+sx, y+sy)
 					if d > maxDepth {
 						maxDepth = d
 					}
