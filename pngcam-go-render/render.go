@@ -59,6 +59,7 @@ func (r *Renderer) ProcessMesh() {
 	max[X] = float32(math.Inf(-1))
 	max[Y] = float32(math.Inf(-1))
 	max[Z] = float32(math.Inf(-1))
+	maxRadius := 0.0
 
 	for i := range r.mesh.Triangles {
 		t := r.mesh.Triangles[i]
@@ -82,6 +83,12 @@ func (r *Renderer) ProcessMesh() {
 			if v[Z] > max[Z] {
 				max[Z] = v[Z]
 			}
+			if r.options.rotary {
+				r := math.Sqrt(float64(v[Y]*v[Y] + v[Z]*v[Z]))
+				if r > maxRadius {
+					maxRadius = r
+				}
+			}
 		}
 	}
 
@@ -96,8 +103,7 @@ func (r *Renderer) ProcessMesh() {
 		min[Z] = 0
 		r.mesh.Translate(min)
 
-		// TODO: for rotary, mmDepth should be based on radius rather than Z coord
-		r.mmDepth /= 2
+		r.mmDepth = float32(maxRadius)
 	} else {
 		min[X] = -min[X]
 		min[Y] = -min[Y]
