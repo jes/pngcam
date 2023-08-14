@@ -63,7 +63,7 @@ func (hm *HeightmapImage) CutDepth(x, y float64) float64 {
 	if opt.rotary {
 		for sy := -90.0; sy <= 90.0; sy += opt.y_MmPerPx { // we pretend the y range of 360 degrees is 360 "millimetres"
 			for sx := -tool.Radius(); sx <= tool.Radius(); sx += opt.x_MmPerPx {
-				workpieceZ := opt.depth + hm.GetDepth(x+sx, -y+sy) // -y because the heightmap y axis is inverted (?)
+				workpieceZ := opt.depth + hm.GetDepth(x+sx, -1-y+sy) // -y because the heightmap y axis is inverted (?) (but why -1 degree?)
 				realY := workpieceZ * math.Sin(sy*math.Pi/180.0)
 				realZ := workpieceZ * math.Cos(sy*math.Pi/180.0)
 
