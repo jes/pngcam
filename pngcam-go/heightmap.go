@@ -288,7 +288,7 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 		for sy := -rPxY; sy <= rPxY; sy++ {
 			for sx := -rPxX; sx <= rPxX; sx++ {
 				sxMm := float64(sx) * opt.x_MmPerPx
-				syDeg := float64(sy) * opt.x_MmPerPx // degrees
+				syDeg := float64(sy) * opt.y_MmPerPx // degrees
 
 				// how much does the tool radius shrink by due to the distance from centre line in x axis?
 				radiusChange := r - math.Sqrt(r*r-sxMm*sxMm)
@@ -321,7 +321,7 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 		for sy := -rPxY; sy <= rPxY; sy++ {
 			for sx := -rPxX; sx <= rPxX; sx++ {
 				sxMm := float64(sx) * opt.x_MmPerPx
-				syMm := float64(sy) * opt.x_MmPerPx
+				syMm := float64(sy) * opt.y_MmPerPx
 
 				rSqr := sxMm*sxMm + syMm*syMm
 				if rSqr > toolRadiusSqr {
