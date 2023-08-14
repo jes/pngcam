@@ -290,31 +290,8 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 				sxMm := float64(sx) * opt.x_MmPerPx
 				syDeg := float64(sy) * opt.y_MmPerPx // degrees
 
-				// how much does the tool radius shrink by due to the distance from centre line in x axis?
-				radiusChange := r - math.Sqrt(r*r-sxMm*sxMm)
-
-				// what is the length of the line segment from the origin, at angle syDeg, that intersects with a circle whose bottom is at z=z?
-				// sine law: a/sinA = b/sinB = c/sinC
-				// we have a triange with angle A = abs(syDeg), side length a = r, side length b = z+r
-				A := math.Abs(syDeg * math.Pi / 180.0)
-				a := r - radiusChange
-				b := z + r + radiusChange
-				// we want to know side length c
-				// first use the sine law to find angle B
-				// b/sinB = a/sinA, sinB = b.sin(A)/a, B = asin(b.sin(A)/a)
-				B := math.Asin(b * math.Sin(A) / a)
-				if math.IsNaN(B) {
-					// tool can not touch workpiece at this angle
-					continue
-				}
-				B = math.Pi - B // of the 2 possible solutions, we want the larger angle for B
-				// now we know that the angles add up to 180 degrees (pi radians), find angle C
-				C := math.Pi - (B + A)
-				// now use the sine law to find side length c
-				// c/sinC = a/sinA, c = a.sin(C)/sin(A)
-				c := a * math.Sin(C) / math.Sin(A)
-
-				m.PlotPixelPx(xPx+sx, yPx+sy, c-opt.depth)
+				height := tool.LengthToIntersection(sxMm, syDeg, z)
+				m.PlotPixelPx(xPx+sx, yPx+sy, height-opt.depth)
 			}
 		}
 	} else {
