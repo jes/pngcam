@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/png"
 	"math"
@@ -13,11 +14,12 @@ type HeightmapImage struct {
 }
 
 type ToolpointsMap struct {
-	w       int
-	h       int
-	hm      *HeightmapImage
-	height  []float64
-	options *Options
+	w             int
+	h             int
+	hm            *HeightmapImage
+	height        []float64
+	initialHeight float64
+	options       *Options
 }
 
 func OpenHeightmapImage(path string, opt *Options) (*HeightmapImage, error) {
@@ -137,11 +139,12 @@ func (hm *HeightmapImage) IsBottom(x, y float64) bool {
 
 func NewToolpointsMap(w, h int, options *Options, init float64) *ToolpointsMap {
 	tpm := ToolpointsMap{
-		w:       w,
-		h:       h,
-		hm:      nil,
-		height:  make([]float64, w*h),
-		options: options,
+		w:             w,
+		h:             h,
+		hm:            nil,
+		height:        make([]float64, w*h),
+		options:       options,
+		initialHeight: init,
 	}
 
 	for i := 0; i < w*h; i++ {
@@ -195,12 +198,20 @@ func (m *ToolpointsMap) WritePNG(path string, existingStock *HeightmapImage) err
 		}
 	}
 
+	if !m.options.quiet {
+		fmt.Fprintf(os.Stderr, "Writing stock: 0%%")
+	}
 	for y := 0; y < m.h; y++ {
 		for x := 0; x < m.w; x++ {
 			xMm, yMm := m.options.PxToMm(x, y)
-			if m.height[y*m.w+x] < 0 {
+			if m.height[y*m.w+x] != m.initialHeight {
 				m2.PlotToolShape(xMm, yMm, m.height[y*m.w+x])
 			}
+		}
+
+		if !m.options.quiet {
+			pct := float64(100 * y / m.h)
+			fmt.Fprintf(os.Stderr, "   \rWriting stock: %.0f%%", pct)
 		}
 	}
 
@@ -238,6 +249,11 @@ func (m *ToolpointsMap) WritePNG(path string, existingStock *HeightmapImage) err
 	}
 	png.Encode(out, img)
 	out.Close()
+
+	if !m.options.quiet {
+		fmt.Fprintf(os.Stderr, "   \rWriting stock: done\n")
+	}
+
 	return err
 }
 
@@ -262,22 +278,58 @@ func (m *ToolpointsMap) PlotToolShape(x, y, z float64) {
 	r := tool.Radius()
 	rPxX := int(r/opt.x_MmPerPx) + 1
 	rPxY := int(r/opt.y_MmPerPx) + 1
+	if opt.rotary {
+		rPxY = int(90.0/opt.y_MmPerPx) + 1
+	}
 
 	toolRadiusSqr := r * r
 
-	// TODO: rotary
+	if opt.rotary {
+		for sy := -rPxY; sy <= rPxY; sy++ {
+			for sx := -rPxX; sx <= rPxX; sx++ {
+				sxMm := float64(sx) * opt.x_MmPerPx
+				syDeg := float64(sy) * opt.x_MmPerPx // degrees
 
-	for sy := -rPxY; sy <= rPxY; sy++ {
-		for sx := -rPxX; sx <= rPxX; sx++ {
-			sxMm := float64(sx) * opt.x_MmPerPx
-			syMm := float64(sy) * opt.x_MmPerPx
+				// how much does the tool radius shrink by due to the distance from centre line in x axis?
+				radiusChange := r - math.Sqrt(r*r-sxMm*sxMm)
 
-			rSqr := sxMm*sxMm + syMm*syMm
-			if rSqr > toolRadiusSqr {
-				continue
+				// what is the length of the line segment from the origin, at angle syDeg, that intersects with a circle whose bottom is at z=z?
+				// sine law: a/sinA = b/sinB = c/sinC
+				// we have a triange with angle A = abs(syDeg), side length a = r, side length b = z+r
+				A := math.Abs(syDeg * math.Pi / 180.0)
+				a := r - radiusChange
+				b := z + r + radiusChange
+				// we want to know side length c
+				// first use the sine law to find angle B
+				// b/sinB = a/sinA, sinB = b.sin(A)/a, B = asin(b.sin(A)/a)
+				B := math.Asin(b * math.Sin(A) / a)
+				if math.IsNaN(B) {
+					// tool can not touch workpiece at this angle
+					continue
+				}
+				B = math.Pi - B // of the 2 possible solutions, we want the larger angle for B
+				// now we know that the angles add up to 180 degrees (pi radians), find angle C
+				C := math.Pi - (B + A)
+				// now use the sine law to find side length c
+				// c/sinC = a/sinA, c = a.sin(C)/sin(A)
+				c := a * math.Sin(C) / math.Sin(A)
+
+				m.PlotPixelPx(xPx+sx, yPx+sy, c-opt.depth)
 			}
-			zOffset := tool.HeightAtRadiusSqr(rSqr)
-			m.PlotPixelPx(xPx+sx, yPx+sy, z+zOffset)
+		}
+	} else {
+		for sy := -rPxY; sy <= rPxY; sy++ {
+			for sx := -rPxX; sx <= rPxX; sx++ {
+				sxMm := float64(sx) * opt.x_MmPerPx
+				syMm := float64(sy) * opt.x_MmPerPx
+
+				rSqr := sxMm*sxMm + syMm*syMm
+				if rSqr > toolRadiusSqr {
+					continue
+				}
+				zOffset := tool.HeightAtRadiusSqr(rSqr)
+				m.PlotPixelPx(xPx+sx, yPx+sy, z+zOffset)
+			}
 		}
 	}
 }

@@ -40,7 +40,11 @@ func NewJob(opt *Options) (*Job, error) {
 	}
 
 	if opt.writeStockPath != "" {
-		j.writeStock = NewToolpointsMap(hm.img.Bounds().Max.X, hm.img.Bounds().Max.Y, opt, 0)
+		initialDepth := 0.0
+		if opt.rotary {
+			initialDepth = opt.depth
+		}
+		j.writeStock = NewToolpointsMap(hm.img.Bounds().Max.X, hm.img.Bounds().Max.Y, opt, initialDepth)
 	}
 
 	if !opt.quiet {
