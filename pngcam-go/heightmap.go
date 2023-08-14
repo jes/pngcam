@@ -122,7 +122,9 @@ func (hm *HeightmapImage) GetDepthPx(px, py int) float64 {
 	}
 
 	r, g, b, _ := hm.img.At(px, py).RGBA()
-	// XXX: why 257?
+	// XXX: why 257? https://stackoverflow.com/a/41185404 but doesn't really
+	// explain - empirically it doesn't make any difference whether it is 256 or
+	// 257, presumably it rounds to the same result
 	r /= 257
 	g /= 257
 	b /= 257
