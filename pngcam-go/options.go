@@ -95,6 +95,9 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 
 	if opt.rotary {
 		// in rotary mode we use "inverse time" feed rates
+		if totalDist < epsilon {
+			return opt.rapidFeed // XXX: what should we do here? probably doesn't matter given that distance = 0
+		}
 		movesPerMin := unitsPerMin / totalDist
 		return movesPerMin
 	} else {
