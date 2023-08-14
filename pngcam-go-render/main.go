@@ -15,6 +15,7 @@ func main() {
 	bottom := flag.Bool("bottom", false, "Draw the bottom side instead of the top.")
 	cpuProfile := flag.String("cpuprofile", "", "Write CPU profile to file.")
 	rotary := flag.Bool("rotary", false, "Rotary carving.")
+	rgb := flag.Bool("rgb", false, "Use full 24-bit colour depth.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage:\n")
@@ -53,6 +54,7 @@ func main() {
 		stlFile: stlFile,
 		pngFile: *png,
 		rotary:  *rotary,
+		rgb:     *rgb,
 	}
 
 	renderer, err := NewRenderer(&opt)

@@ -8,4 +8,5 @@ type Options struct {
 	stlFile string
 	pngFile string
 	rotary  bool
+	rgb     bool
 }
