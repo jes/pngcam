@@ -73,6 +73,10 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 		y2 := end.z * math.Sin(end.y*math.Pi/180.0)
 		dy = y2 - y1
 		xyDist = math.Sqrt(dx*dx + dy*dy)
+		z1 := start.z * math.Cos(start.y*math.Pi/180.0)
+		z2 := end.z * math.Cos(end.y*math.Pi/180.0)
+		dz = z2 - z1
+		zDist = math.Sqrt(dz * dz)
 		// TODO: this calculates the straight-line distance between the 2 points, but
 		// actually the movement follows an arc (which may be combined with X and Z
 		// moves) - ideally we would calculate the true arc length instead of the

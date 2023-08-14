@@ -273,7 +273,11 @@ func (seg *ToolpathSegment) CycleTime(opt Options) float64 {
 		// TODO: take opt.maxAccel into account
 		// TODO: when cycle time calculation is better, remove the factor of 10 in job.CombineSegments()
 
-		cycleTime += 60 * (dist / feedRate)
+		if feedRate != opt.rapidFeed && opt.rotary {
+			cycleTime += 60 / feedRate
+		} else {
+			cycleTime += 60 * (dist / feedRate)
+		}
 	}
 
 	return cycleTime
