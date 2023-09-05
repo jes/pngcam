@@ -21,7 +21,7 @@ func main() {
 	roughingOnly := flag.Bool("roughing-only", false, "Only do the roughing pass (based on --step-down) and do not do the finish pass. This is useful if you want to use different parameters, or a different tool, for the roughing pass comapred to the finish pass.")
 	clearance := flag.Float64("clearance", 0, "Set the clearance to leave around the part in mm. Intended so that you can come back again with a finish pass to clean up the part.")
 	safeZ := flag.Float64("rapid-clearance", 5, "Set the Z clearance to leave above the part during rapid moves.")
-	route := flag.String("route", "horizontal", "Set whether the tool will move in horizontal or vertical lines.")
+	route := flag.String("route", "horizontal", "Set whether the tool will move in horizontal, vertical, or helical lines.")
 	xOffset := flag.Float64("x-offset", 0, "Set the offset to add to X coordinates.")
 	yOffset := flag.Float64("y-offset", 0, "Set the offset to add to Y coordinates.")
 	zOffset := flag.Float64("z-offset", 0, "Set the offset to add to Z coordinates.")
@@ -76,7 +76,11 @@ func main() {
 	dir := Horizontal
 	if *route == "vertical" {
 		dir = Vertical
-	} else if *route != "horizontal" {
+	} else if *route == "horizontal" {
+		dir = Horizontal
+	} else if *route == "helical" {
+		dir = Helical
+	} else {
 		fmt.Fprintf(os.Stderr, "unrecognised route: %s\n", *route)
 		os.Exit(1)
 	}
@@ -100,6 +104,10 @@ func main() {
 		// rotary parts are always 360 degrees around (should this be configurable? e.g. to allow partial rotation?)
 		*height = 360.0
 		*safeZ += *depth
+	} else {
+		if dir == Helical {
+			fmt.Fprintf(os.Stderr, "can't use helical paths in non-rotary mode")
+		}
 	}
 
 	opt := Options{

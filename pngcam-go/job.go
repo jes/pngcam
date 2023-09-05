@@ -75,6 +75,9 @@ func (j *Job) MakeToolpath() {
 	if opt.direction == Vertical {
 		xStep = 0.0
 		yStep = opt.y_MmPerPx
+	} else if opt.direction == Helical {
+		xStep = opt.stepOver / float64(opt.heightPx)
+		yStep = opt.y_MmPerPx
 	}
 
 	zero := 0.0
@@ -97,7 +100,7 @@ func (j *Job) MakeToolpath() {
 		seg := NewToolpathSegment()
 
 		// TODO: use CutPath() instead of this weird dual-loop thing
-		for x >= zero && y >= zero && x < xLimit && y < yLimit {
+		for x >= zero && y >= zero && x < xLimit && (y < yLimit || opt.direction == Helical) {
 			seg.Append(Toolpoint{x, y, j.toolpoints.GetMm(x, y), CuttingFeed})
 
 			x += xStep
@@ -114,9 +117,13 @@ func (j *Job) MakeToolpath() {
 		if opt.direction == Horizontal {
 			y += opt.stepOver
 			pct = float64(100*(y-zero)) / (yLimit - zero)
-		} else {
+		} else if opt.direction == Vertical {
 			x += opt.stepOver
 			pct = float64(100*(x-zero)) / (xLimit - zero)
+		} else if opt.direction == Helical {
+			break
+		} else {
+			panic("unimplemented direction")
 		}
 
 		xStep = -xStep

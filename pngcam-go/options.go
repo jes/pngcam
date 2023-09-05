@@ -9,6 +9,7 @@ type Direction int
 const (
 	Horizontal Direction = iota
 	Vertical
+	Helical
 )
 
 type Options struct {
@@ -111,9 +112,17 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 }
 
 func (opt *Options) MmToPx(x, y float64) (int, int) {
-	return int(x / opt.x_MmPerPx), int(-y/opt.y_MmPerPx) + opt.heightPx - 1
+	xPx := int(x / opt.x_MmPerPx)
+	yPx := int(-y/opt.y_MmPerPx) + opt.heightPx - 1
+	if opt.rotary {
+		yPx = ((yPx % opt.heightPx) + opt.heightPx) % opt.heightPx
+	}
+	return xPx, yPx
 }
 
 func (opt Options) PxToMm(x, y int) (float64, float64) {
-	return float64(x) * opt.x_MmPerPx, float64(opt.heightPx-1-y) * opt.y_MmPerPx
+	xMm := float64(x) * opt.x_MmPerPx
+	yMm := float64(opt.heightPx-1-y) * opt.y_MmPerPx
+	// TODO: do we need to handle out-of-bounds pixels in rotary mode?
+	return xMm, yMm
 }
