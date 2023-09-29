@@ -70,18 +70,15 @@ func (opt Options) FeedRate(start Toolpoint, end Toolpoint) float64 {
 	zDist := dz
 
 	if opt.rotary {
-		y1 := start.z * math.Sin(start.y*math.Pi/180.0)
-		y2 := end.z * math.Sin(end.y*math.Pi/180.0)
-		dy = y2 - y1
-		xyDist = math.Sqrt(dx*dx + dy*dy)
-		z1 := start.z * math.Cos(start.y*math.Pi/180.0)
-		z2 := end.z * math.Cos(end.y*math.Pi/180.0)
-		dz = z2 - z1
-		zDist = math.Sqrt(dz * dz)
-		// TODO: this calculates the straight-line distance between the 2 points, but
-		// actually the movement follows an arc (which may be combined with X and Z
-		// moves) - ideally we would calculate the true arc length instead of the
-		// straight-line length
+		// TODO: this is only an approximation of the arc length (we could consider
+		// deriving the true value, or compute it in steps of a few degrees, or just
+		// leave as-is)
+		highZ := start.z
+		if end.z > highZ {
+			highZ = end.z
+		}
+		arcLength := math.Pi * highZ * 2 * dy / 360.0 // circumference = pi * diameter
+		xyDist = math.Sqrt(arcLength*arcLength + dx*dx)
 	}
 
 	totalDist := math.Sqrt(xyDist*xyDist + zDist*zDist)
