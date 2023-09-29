@@ -224,8 +224,14 @@ func (j *Job) Roughing() *Toolpath {
 
 	path := NewToolpath()
 
-	for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
-		path.AppendToolpath(j.RoughingLevel(z).Simplified().Sorted())
+	if opt.rotary {
+		for z := opt.depth - opt.stepDown; z > 0; z -= opt.stepDown {
+			path.AppendToolpath(j.RoughingLevel(z).Simplified().Sorted())
+		}
+	} else {
+		for z := -opt.stepDown; z > deepest; z -= opt.stepDown {
+			path.AppendToolpath(j.RoughingLevel(z).Simplified().Sorted())
+		}
 	}
 
 	return &path
