@@ -107,8 +107,8 @@ func (j *Job) MakeToolpath() {
 			y += yStep
 		}
 
-		if opt.omitTop {
-			j.mainToolpath.AppendToolpath(seg.OmitTop().Simplified())
+		if opt.omitTop || opt.omitBottom {
+			j.mainToolpath.AppendToolpath(seg.OmitTopAndBottom(opt).Simplified())
 		} else {
 			j.mainToolpath.Append(seg.Simplified())
 		}

@@ -40,6 +40,7 @@ type Options struct {
 
 	roughingOnly   bool
 	omitTop        bool
+	omitBottom     bool
 	rampEntry      bool
 	cutBelowBottom bool
 	cutBeyondEdges bool

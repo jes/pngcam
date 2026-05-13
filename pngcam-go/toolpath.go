@@ -131,7 +131,7 @@ func (seg *ToolpathSegment) ToGcode(opt Options) string {
 	return gcode.String()
 }
 
-func (seg *ToolpathSegment) OmitTop() *Toolpath {
+func (seg *ToolpathSegment) OmitTopAndBottom(opt *Options) *Toolpath {
 	tp := NewToolpath()
 
 	newseg := NewToolpathSegment()
@@ -142,7 +142,14 @@ func (seg *ToolpathSegment) OmitTop() *Toolpath {
 	epsilon := 0.01
 
 	for i := range seg.points {
-		if seg.points[i].z > -epsilon {
+		omit := false
+		if opt.omitTop && seg.points[i].z > -epsilon {
+			omit = true
+		}
+		if opt.omitBottom && seg.points[i].z < -opt.depth+epsilon {
+			omit = true
+		}
+		if omit {
 			tp.Append(newseg)
 			newseg = NewToolpathSegment()
 		} else {

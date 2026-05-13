@@ -36,6 +36,7 @@ func main() {
 	cutBelowBottom := flag.Bool("deep-black", false, "Let the tool cut below the full depth if this would allow better reproduction of the non-black parts of the heightmap. Only really applicable with a ball-nose end mill.")
 	cutBeyondEdges := flag.Bool("beyond-edges", false, "Let the tool cut beyond the edges of the heightmap.")
 	omitTop := flag.Bool("omit-top", false, "Don't bother cutting top surfaces that are at the upper limit of the heightmap.")
+	omitBottom := flag.Bool("omit-bottom", false, "Don't bother cutting bottom surfaces that are at the lower limit of the heightmap.")
 	imperial := flag.Bool("imperial", false, "All units in inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.")
 
 	readStockPath := flag.String("read-stock", "", "Read stock heightmap from PNG file, to save cutting air in roughing passes.")
@@ -138,6 +139,7 @@ func main() {
 
 		roughingOnly:   *roughingOnly,
 		omitTop:        *omitTop,
+		omitBottom:     *omitBottom,
 		rampEntry:      *rampEntry,
 		cutBelowBottom: *cutBelowBottom,
 		cutBeyondEdges: *cutBeyondEdges,
