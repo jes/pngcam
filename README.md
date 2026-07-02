@@ -6,6 +6,8 @@ I wrote a bit about it in https://incoherency.co.uk/blog/stories/cnc-heightmap-t
 
 Pngcam also includes a heightmap rendering program called pngcam-render.
 
+See the file `UNLICENSE` for licensing information.
+
 ## Building
 
 Dependencies:
